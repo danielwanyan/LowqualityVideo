@@ -1,0 +1,126 @@
+Review this one e-commerce short video and its bound product evidence.
+
+Visual input:
+{{gated_all_image_urls}}
+
+Image manifest:
+{{gated_all_image_manifest}}
+
+Risk attention packet:
+{{gated_risk_attention_packet}}
+
+Evidence gate panel:
+{{evidence_gate_panel}}
+
+Allowed issue types from evidence gate:
+{{allowed_issue_types}}
+
+Forbidden claims from evidence gate:
+{{forbidden_claims}}
+
+Recommended decision floor from evidence gate:
+{{recommended_decision_floor}}
+
+Source identifiers:
+video_id: {{video_id}}
+product_id: {{product_id}}
+country: {{country}}
+seller_id_str: {{seller_id_str}}
+is_AIGC: {{is_AIGC}}
+
+Video text:
+ASR: {{ASR}}
+OCR: {{OCR}}
+
+Comment and review source:
+comments: {{comments}}
+product_review_summary: {{product_review_summary}}
+
+Required review process:
+1. Check data availability first. If video frames or product images are missing, do not invent visual evidence.
+2. If gated_all_image_urls is non-empty, directly inspect the images in the visual input array.
+3. Follow the image manifest. Product reference images appear first, followed by sampled video frames.
+4. Treat adjacent video frames as neighboring sampled frames, not frames one second apart.
+5. Review only the 15 in-scope issue types listed below. Do not cover the complete SOP.
+6. Use is_AIGC only as an attribute and as an attention boost for unrealistic_or_continuity_error.
+7. Do not use is_AIGC to hit misleading_functionality_and_effect, no_physical_product_display, still_frame, potential_pirated, pirated_content, pornography_perception, or any other issue by itself.
+8. For pirated_content and potential_pirated, require strong internal evidence from frames or ASR/OCR. Comments alone cannot support pirated_content or potential_pirated.
+9. Obey forbidden_claims from Evidence Gate. If a claim is forbidden, do not make it.
+10. Return raw JSON only.
+
+Allowed overall_decision values:
+problematic
+manual_review
+clean
+
+Allowed primary_issue_type values:
+potential_pirated
+irrelevant_promotion
+pirated_content
+inconsistent_product_promotion
+non_native
+still_frame
+out_of_app_transactions
+misleading_functionality_and_effect
+dangerous_behavior
+disgusting_and_terrifying
+description_not_detailed
+only_marketing_sales_pitches
+pornography_perception
+no_physical_product_display
+unrealistic_or_continuity_error
+none
+
+Output JSON schema:
+```json
+{
+  "video_id": "",
+  "overall_decision": "problematic|manual_review|clean",
+  "primary_issue_type": "potential_pirated|irrelevant_promotion|pirated_content|inconsistent_product_promotion|non_native|still_frame|out_of_app_transactions|misleading_functionality_and_effect|dangerous_behavior|disgusting_and_terrifying|description_not_detailed|only_marketing_sales_pitches|pornography_perception|no_physical_product_display|unrealistic_or_continuity_error|none",
+  "detected_issue_types": [],
+  "is_AIGC": "true|false|unknown",
+  "issue_results": {
+    "potential_pirated": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "irrelevant_promotion": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "pirated_content": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "inconsistent_product_promotion": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "non_native": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "still_frame": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "out_of_app_transactions": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "misleading_functionality_and_effect": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "dangerous_behavior": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "disgusting_and_terrifying": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "description_not_detailed": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "only_marketing_sales_pitches": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "pornography_perception": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "no_physical_product_display": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
+    "unrealistic_or_continuity_error": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"}
+  },
+  "data_quality": {
+    "video_frames_available": true,
+    "product_images_available": true,
+    "asr_available": true,
+    "ocr_available": true,
+    "comments_available": true,
+    "product_review_summary_available": true,
+    "missing_or_weak_inputs": []
+  },
+  "manual_review_reasons": [],
+  "summary_cn": "",
+  "final_reason_cn": ""
+}
+```
+
+Additional output rules:
+- Use literal booleans and arrays, not strings like "true", "false", or "[]".
+- detected_issue_types is multi-select. Include every issue with decision=hit.
+- primary_issue_type must be one of detected_issue_types when overall_decision is problematic.
+- primary_issue_type must be none when overall_decision is clean.
+- If there is no strong hit but there is unresolved risk, use overall_decision=manual_review.
+- For manual_review, primary_issue_type may be none unless one uncertain issue is clearly dominant.
+- issue_results must include all 15 issue keys exactly.
+- Do not output legacy issue types from other projects.
+- All summaries, reasons, and evidence fields must be in Chinese. Direct source quotes may remain in source language.
+- If comments changed or supported the risk interpretation, mention that in final_reason_cn. If comments are not decisive, say so briefly.
+- If evidence is missing, say what is missing rather than inventing it.
+- Return raw JSON only. No markdown. No explanation outside the JSON.
