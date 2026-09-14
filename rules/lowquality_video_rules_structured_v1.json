@@ -1,0 +1,392 @@
+{
+  "version": "2026-09-14-v1-initial-sop-15-labels",
+  "project": "LowqualityVideo",
+  "scope": "Review one e-commerce short video using the existing video-product-lowquality input shape plus is_AIGC. The workflow covers only the 15 user-confirmed SOP issue types and does not cover the complete SOP.",
+  "decision_values": [
+    "problematic",
+    "manual_review",
+    "clean"
+  ],
+  "primary_issue_types": [
+    "dangerous_behavior",
+    "description_not_detailed",
+    "disgusting_and_terrifying",
+    "inconsistent_product_promotion",
+    "irrelevant_promotion",
+    "misleading_functionality_and_effect",
+    "no_physical_product_display",
+    "non_native",
+    "only_marketing_sales_pitches",
+    "out_of_app_transactions",
+    "pirated_content",
+    "pornography_perception",
+    "potential_pirated",
+    "still_frame",
+    "unrealistic_or_continuity_error",
+    "none"
+  ],
+  "frame_sampling_contract": {
+    "frame_list_semantics": "frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order.",
+    "adjacent_frame_semantics": "Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart.",
+    "timestamp_boundary": "Do not claim exact elapsed time between frames unless explicit timestamps are provided."
+  },
+  "is_AIGC_usage": {
+    "normalized_values": [
+      "true",
+      "false",
+      "unknown"
+    ],
+    "attention_boost_issue_types": [
+      "unrealistic_or_continuity_error"
+    ],
+    "must_not_trigger_issue_by_itself": "is_AIGC is only an attribute and attention signal. It must never create a hit without concrete frame, ASR, OCR, product image, or comment evidence.",
+    "no_attention_boost_issue_types": [
+      "misleading_functionality_and_effect",
+      "no_physical_product_display",
+      "still_frame",
+      "only_marketing_sales_pitches",
+      "pornography_perception",
+      "potential_pirated",
+      "pirated_content"
+    ]
+  },
+  "evidence_channels": {
+    "video_content": [
+      "frame_list",
+      "ASR",
+      "OCR",
+      "url",
+      "is_AIGC"
+    ],
+    "product_reference": [
+      "product_id",
+      "images",
+      "seller_id_str",
+      "country"
+    ],
+    "feedback": [
+      "comments",
+      "product_review_summary"
+    ]
+  },
+  "rules": [
+    {
+      "id": "LV01",
+      "issue_type": "potential_pirated",
+      "sop_label": "Potential pirated//拼接混剪",
+      "name": "Potential pirated or suspicious spliced/remixed content",
+      "triggers": [
+        "Video frames show frequent clip switching with different people, hands, scenery, lighting, resolution, aspect ratio, or production styles that strongly suggest multi-source splicing.",
+        "Video frames show sandwich-style or AB-style composition that appears to combine unrelated source footage with product promotion.",
+        "Video frames or ASR/OCR suggest domestic-seller or other-creator footage was repurposed for a European e-commerce promotion."
+      ],
+      "required_evidence": [
+        "strong internal evidence from video frames, ASR, or OCR",
+        "specific frame-level or text-level evidence explaining why ordinary montage is unlikely",
+        "no external Pearl fields are required or available; judge only from current workflow inputs"
+      ],
+      "false_positive_boundaries": [
+        "Do not mark potential_pirated for ordinary editing, normal montage, scene transitions, product b-roll, or weak style changes.",
+        "Do not mark potential_pirated when the footage could reasonably be authorized brand or seller material and there is no strong internal evidence of repurposed content.",
+        "Do not rely on external Pearl Similar Video, creator profile, account ownership, or penalty record because these fields are not part of the workflow input."
+      ],
+      "minimum_decision": "manual_review_when_suspicious_but_not_conclusive"
+    },
+    {
+      "id": "LV02",
+      "issue_type": "irrelevant_promotion",
+      "sop_label": "Irrelevant promotion//内容与商品无关（IP问题）",
+      "name": "Video content unrelated to bound product promotion",
+      "triggers": [
+        "Video content is mainly entertainment, storytelling, social content, accident footage, or unrelated scenes.",
+        "The bound product appears only briefly, flashes by, cannot be clearly identified, or is not meaningfully promoted.",
+        "ASR/OCR/title-style evidence indicates the main content topic is unrelated to the product."
+      ],
+      "required_evidence": [
+        "video frame evidence or ASR/OCR evidence showing main content topic",
+        "product reference evidence or product identity showing what the bound product is"
+      ],
+      "false_positive_boundaries": [
+        "Do not mark irrelevant_promotion when the video clearly demonstrates, explains, or uses the bound product even briefly but substantively.",
+        "Do not mark irrelevant_promotion only because the video contains entertainment elements if the product remains the central promotion target."
+      ]
+    },
+    {
+      "id": "LV03",
+      "issue_type": "pirated_content",
+      "sop_label": "Pirated content//非原创内容",
+      "name": "Confirmed non-original or copied creator content",
+      "triggers": [
+        "Video frame shows visible third-party creator watermark, username, platform mark, repost mark, or copied-source indicator.",
+        "ASR/OCR clearly indicates reposting, copying, stolen content, or content taken from another creator.",
+        "A duet-like layout shows the current creator contributes no meaningful new product promotion and only carries another creator's product promotion.",
+        "Comment evidence says stolen, copied, reposted, or source creator when frame or ASR/OCR evidence also points to copied content."
+      ],
+      "required_evidence": [
+        "strong internal evidence from video frames, ASR, OCR, or comments combined with frame or ASR/OCR evidence",
+        "specific evidence identifying copied or third-party creator content",
+        "no external Pearl fields are required or available; judge only from current workflow inputs"
+      ],
+      "false_positive_boundaries": [
+        "Do not mark pirated_content from comments alone.",
+        "Do not mark pirated_content for ordinary montage, public-resource footage, or likely authorized brand/seller material without strong internal evidence.",
+        "Do not rely on external Pearl Similar Video, creator profile, account ownership, or penalty record because these fields are not part of the workflow input."
+      ],
+      "minimum_decision": "manual_review_when_suspicious_but_not_conclusive"
+    },
+    {
+      "id": "LV04",
+      "issue_type": "inconsistent_product_promotion",
+      "sop_label": "Inconsistent product promotion//挂车商品与讲解商品不一致",
+      "name": "Promoted product differs from bound product",
+      "triggers": [
+        "Video contains verbal or written e-commerce product promotion.",
+        "The displayed product differs materially from the bound product shown in product reference images.",
+        "Mismatch concerns product type, shape, structure, packaging, material, style, size, variant, or core design."
+      ],
+      "required_evidence": [
+        "video frame or ASR/OCR evidence of the promoted product",
+        "product reference images for comparison"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit when displayed product matches the bound product main image.",
+        "Do not hit when the displayed item can reasonably be a SKU variant of the bound product.",
+        "For blind boxes, accessories, jade, and collectible cards, same L3 category can exempt the mismatch.",
+        "For apparel tops and bottoms, pattern or color differences within the same SPU/SKU family can be exempted.",
+        "If product images are missing, do not make a strong hit; use manual_review if text or frames are concerning."
+      ]
+    },
+    {
+      "id": "LV05",
+      "issue_type": "non_native",
+      "sop_label": "Non-native//非本地画风内容",
+      "name": "Non-native content style for international market",
+      "triggers": [
+        "Creator uses long Chinese spoken expression in an international-market product promotion.",
+        "Video contains Chinese characters in text, stickers, or background while promoting in an international market.",
+        "Spoken English is highly unusual, incomprehensible, or has severe grammar/expression issues that block understanding."
+      ],
+      "required_evidence": [
+        "ASR, OCR, or visible frame text/language evidence",
+        "country or market context when available"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for slight accent when the content remains intelligible.",
+        "Do not hit for isolated non-local background speech that is not the creator's promotion.",
+        "This workflow covers non_native only; it does not cover the broader SOP Other Languages category."
+      ]
+    },
+    {
+      "id": "LV06",
+      "issue_type": "still_frame",
+      "sop_label": "Still frame//静止帧",
+      "name": "Static-frame video without product explanation",
+      "triggers": [
+        "Video has no verbal or written product explanation.",
+        "Product display is made of static images, live photos, screenshots, cutouts, or pasted product images.",
+        "The content lacks real video footage or meaningful live demonstration."
+      ],
+      "required_evidence": [
+        "video frame evidence showing static or pasted visual format",
+        "ASR/OCR absence or lack of product explanation"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit when the video has a meaningful real demonstration, even if some static slides are present.",
+        "Do not hit from missing ASR/OCR alone if frames show clear product use or demonstration."
+      ]
+    },
+    {
+      "id": "LV07",
+      "issue_type": "out_of_app_transactions",
+      "sop_label": "Out-of-app transactions//商家引流站外交易",
+      "name": "Off-platform transaction guidance",
+      "triggers": [
+        "Content includes an external payment or transaction route such as PayPal, Venmo, Cash App, WhatsApp, Telegram, phone number, external website, offline store, or other payment app.",
+        "Content directs viewers to purchase, pay, contact, or complete the transaction through that external route.",
+        "Evidence can come from ASR, OCR, visual signage, or comments."
+      ],
+      "required_evidence": [
+        "external transaction route",
+        "commercial or purchase direction tied to that route"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit when the content only promotes social media or messaging contact and commercial intent is unclear.",
+        "Do not hit when the host clearly directs users to order inside TTS and external mention is incidental.",
+        "Do not hit for external contact aimed only at users who cannot access the TTS shopping cart unless commercial evasion is explicit."
+      ]
+    },
+    {
+      "id": "LV08",
+      "issue_type": "misleading_functionality_and_effect",
+      "sop_label": "Misleading functionality and effect//虚假夸大",
+      "name": "Misleading or exaggerated functionality and effect",
+      "triggers": [
+        "Video magnifies product effects or functions using exaggerated filming or unreliable information.",
+        "Product result appears physically, medically, biologically, or practically unreliable.",
+        "Video claims rapid or guaranteed outcomes for health, beauty, weight, growth, repair, cleaning, durability, capacity, compatibility, or safety without credible support."
+      ],
+      "required_evidence": [
+        "ASR/OCR claim or visual demonstration showing the exaggerated effect",
+        "connection to the promoted product expectation"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for normal positive marketing praise without concrete misleading effect or function.",
+        "Do not hit just because is_AIGC is true; non-AIGC content can also be misleading and AIGC content can be acceptable."
+      ]
+    },
+    {
+      "id": "LV09",
+      "issue_type": "dangerous_behavior",
+      "sop_label": "Dangerous behavior//危害人身安全及危险行为",
+      "name": "Dangerous behavior or life-safety risk",
+      "triggers": [
+        "Video includes violent or unsafe behavior that endangers life safety.",
+        "Product demonstration encourages dangerous imitation.",
+        "Product or demonstration creates the illusion of fire, heavy smoke, explosion, weapon-like harm, or unsafe operation."
+      ],
+      "required_evidence": [
+        "video frame evidence or ASR/OCR evidence of dangerous behavior"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for ordinary safe product use.",
+        "Do not hit for fictional or decorative danger cues unless they create a realistic safety risk or unsafe promotional instruction."
+      ]
+    },
+    {
+      "id": "LV10",
+      "issue_type": "disgusting_and_terrifying",
+      "sop_label": "Disgusting and terrifying//恶心恐怖（画面引起不适）",
+      "name": "Disgusting, terrifying, or physically uncomfortable content",
+      "triggers": [
+        "Video shows ear cleaning, close-up insects, dirty drains, sewers, dirty or messy places, bodily material, or other visuals likely to cause discomfort.",
+        "Audio includes sudden screams, harsh terrifying sounds, or sounds that are physically uncomfortable.",
+        "The discomfort is central enough to affect the viewer experience."
+      ],
+      "required_evidence": [
+        "video frame evidence, ASR/OCR, or explicit audio-description evidence"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for ordinary cleaning-product scenarios where the environment is mildly dirty but acceptable.",
+        "Do not hit for minor background noise that does not prevent clear hearing."
+      ]
+    },
+    {
+      "id": "LV11",
+      "issue_type": "description_not_detailed",
+      "sop_label": "Description is not detailed//内容介绍不详细 & 低质",
+      "name": "Product description lacks required detail",
+      "triggers": [
+        "Video contains product promotion but lacks enough product explanation.",
+        "For most products, the product is not clearly and fully displayed and the explanation lacks meaningful information.",
+        "For electric products, digital products, skincare products, or health supplements, the product is not both displayed and explained."
+      ],
+      "required_evidence": [
+        "video frame evidence of product display quality",
+        "ASR/OCR evidence showing missing or weak product explanation"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for most products when they are shown clearly and fully, even with limited narration.",
+        "Do not hit for makeup get-ready-with-me videos, card unboxing/break videos, or party board game intro videos when the SOP exemption conditions are met.",
+        "Do not confuse this with only_marketing_sales_pitches; this label covers insufficient product detail beyond pure hard-sell scripts."
+      ]
+    },
+    {
+      "id": "LV12",
+      "issue_type": "only_marketing_sales_pitches",
+      "sop_label": "Only marketing sales pitches//仅营销叫卖",
+      "name": "Only hard-sell marketing pitches",
+      "triggers": [
+        "ASR/OCR only emphasizes price, discount, gifts, promotion ending, stock pressure, urgency, checkout, cart, or purchase guidance.",
+        "Text or speech does not explain product function, specification, usage effect, usage method, material, compatibility, or scenario.",
+        "This rule applies to all product categories."
+      ],
+      "required_evidence": [
+        "ASR/OCR evidence showing hard-sell content",
+        "absence of substantive product explanation in ASR/OCR"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit when there is weak but real product function, usage, specification, material, or scenario information.",
+        "Do not hit from missing ASR/OCR alone."
+      ]
+    },
+    {
+      "id": "LV13",
+      "issue_type": "pornography_perception",
+      "sop_label": "Pornography perception//擦边低俗",
+      "name": "Sexualized or vulgar perception",
+      "triggers": [
+        "Content contains unnecessary exposure or sexually suggestive actions such as chest shaking, bending over to expose cleavage, prominent genital outlines, or intentionally sexualized body display.",
+        "The product itself reveals a high degree of skin exposure and wearing or display can easily expose sensitive body parts.",
+        "Presentation creates pornography perception rather than ordinary product introduction."
+      ],
+      "required_evidence": [
+        "video frame evidence or ASR/OCR evidence of sexualized presentation"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit for ordinary introduction, display, or description of intimate products without private-part nudity and without sexually suggestive conduct.",
+        "Regular bikini use in an appropriate beach context is not enough by itself."
+      ]
+    },
+    {
+      "id": "LV14",
+      "issue_type": "no_physical_product_display",
+      "sop_label": "No physical product display//无实物展示（但确实围绕商品讲）",
+      "name": "Product is promoted but not physically displayed",
+      "triggers": [
+        "Video contains verbal or written product explanation.",
+        "The product is shown only as stickers, cutouts, photos, screenshots, live images, or webpage imagery without real video footage.",
+        "The product is not shown at all, or only a partial view is shown so the bound product cannot be confirmed.",
+        "The bound product includes package or brand, but the video only shows the result or usage outcome without package or brand evidence."
+      ],
+      "required_evidence": [
+        "ASR/OCR or visual evidence that the content is about the product",
+        "frame evidence that no physical product is shown or only non-video/static representation is shown"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit if the physical product is clearly shown and can be recognized.",
+        "Do not hit when there is no product explanation; consider still_frame or irrelevant_promotion instead depending on evidence."
+      ]
+    },
+    {
+      "id": "LV15",
+      "issue_type": "unrealistic_or_continuity_error",
+      "sop_label": "穿帮 / 不符现实",
+      "name": "Unrealistic visual physics or continuity error",
+      "triggers": [
+        "Video frames show objects morphing, clipping, floating, moving on their own, passing through surfaces, or changing geometry unrealistically.",
+        "Video frames show product identity drift, structure drift, pattern drift, content identity drift, impossible scale or pose change, or object materialization.",
+        "Garbled or morphing product text/logo appears in a way that affects product understanding.",
+        "AIGC video shows fake speech, fake interview, impossible before-after effects, unrealistic product size/style/effect, or AI avatar explaining the product without product appearance.",
+        "For transparent storage boxes, drawers, organizers, or containers, the same compartment contents change between adjacent sampled frames without a visible placement action."
+      ],
+      "required_evidence": [
+        "specific video frame evidence",
+        "when is_AIGC is true, still require concrete frame evidence; the attribute only raises attention"
+      ],
+      "false_positive_boundaries": [
+        "Do not hit because is_AIGC is true by itself.",
+        "Do not over-focus on minor artifacts that do not affect product understanding.",
+        "Do not claim exact elapsed time between frames without timestamps.",
+        "Adjacent frames mean neighboring sampled frames in frame_list, not one second apart."
+      ]
+    }
+  ],
+  "data_availability_rules": [
+    "If frame_list is empty, do not make video-frame visual claims.",
+    "If images is empty or invalid, do not make product-image comparison claims.",
+    "If ASR and OCR are empty, do not make spoken or written text claims.",
+    "If comments are empty or only placeholders, do not claim comment-supported evidence.",
+    "If evidence is suspicious but incomplete, prefer manual_review over a direct hit.",
+    "Do not use external Pearl fields, Similar Video tab, creator profile, account ownership, or penalty records."
+  ],
+  "output_rules": [
+    "Return raw JSON only.",
+    "Use Chinese summary and evidence explanations.",
+    "Use only the 15 in-scope issue types plus none.",
+    "detected_issue_types is multi-select.",
+    "primary_issue_type must be one of detected_issue_types when overall_decision is problematic.",
+    "primary_issue_type must be none when overall_decision is clean.",
+    "Every hit or uncertain result must include concrete evidence.",
+    "is_AIGC must be returned as true, false, or unknown."
+  ]
+}

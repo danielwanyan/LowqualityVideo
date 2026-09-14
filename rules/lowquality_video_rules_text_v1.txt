@@ -1,0 +1,121 @@
+LowqualityVideo Rules v1
+
+Project scope
+Review one e-commerce short video using the existing video-product-lowquality input shape plus is_AIGC. The workflow covers only these 15 issue types:
+potential_pirated, irrelevant_promotion, pirated_content, inconsistent_product_promotion, non_native, still_frame, out_of_app_transactions, misleading_functionality_and_effect, dangerous_behavior, disgusting_and_terrifying, description_not_detailed, only_marketing_sales_pitches, pornography_perception, no_physical_product_display, unrealistic_or_continuity_error.
+
+Do not cover the complete SOP. Do not output labels outside this list. Use none only when no in-scope issue is detected.
+
+Frame sampling contract
+frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order. Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart. Do not claim exact elapsed time between frames unless explicit timestamps are provided.
+
+is_AIGC
+is_AIGC is an attribute, not a violation. is_AIGC only increases attention for unrealistic_or_continuity_error. It does not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, only_marketing_sales_pitches, pornography_perception, potential_pirated, pirated_content, or any other issue type. is_AIGC must not trigger any issue by itself. Every hit still requires concrete frame, ASR, OCR, product image, or comment evidence.
+
+No external Pearl fields
+Do not use external Pearl fields, Similar Video tab, creator profile, account ownership, penalty records, or creator history. Pirated and potential pirated must be judged only from current workflow inputs: video frames, ASR, OCR, comments, and product evidence.
+
+Decision values
+problematic: one or more in-scope issue types have high-confidence evidence.
+manual_review: evidence is suspicious but incomplete, required evidence is missing, or schema parsing fails.
+clean: no in-scope issue is supported by available evidence.
+
+Issue rules
+
+1. potential_pirated
+Potential pirated means suspicious spliced, remixed, or repurposed content.
+Hit when video frames show frequent clip switching with different people, hands, scenery, lighting, resolution, aspect ratio, or production styles that strongly suggest multi-source splicing; sandwich-style or AB-style composition; or domestic-seller / other-creator footage repurposed for a European e-commerce promotion.
+Required evidence: strong internal evidence from video frames, ASR, or OCR, with specific explanation of why ordinary montage is unlikely. No external Pearl fields are available or required.
+Do not hit for ordinary editing, normal montage, product b-roll, weak style changes, or likely authorized brand/seller material without strong internal evidence. If suspicious but not conclusive, use manual_review and explain the evidence gap.
+
+2. irrelevant_promotion
+Irrelevant promotion means the video content is unrelated to the bound e-commerce product.
+Hit when the main video is entertainment, storytelling, social content, accident footage, or unrelated scenes, and the bound product appears only briefly, flashes by, cannot be identified, or is not meaningfully promoted.
+Do not hit when the video clearly demonstrates, explains, or uses the bound product in a substantive way, even if it also contains entertainment elements.
+
+3. pirated_content
+Pirated content means confirmed non-original or copied creator content.
+Hit only with strong evidence such as visible third-party creator watermark, username, platform mark, repost mark, copied-source indicator, clear ASR/OCR saying the clip was copied/reposted/taken from another creator, or a duet-like layout where the creator adds no meaningful new product promotion and only carries another creator's product promotion.
+Comment evidence accusing reposting or stolen content can only strengthen the case when frame or ASR/OCR evidence already points to copied content.
+Do not hit from comments alone. Do not hit for ordinary montage, public-resource footage, or likely authorized brand/seller material without strong internal evidence. If suspicious but not conclusive, use manual_review.
+
+4. inconsistent_product_promotion
+Inconsistent product promotion means the video promotes one e-commerce product while the bound product reference images show a materially different product.
+Hit when video ASR/OCR or frames promote an EC product, but the displayed product differs from the bound product in type, shape, structure, packaging, material, style, size, variant, or core design.
+Product images are required for a strong hit.
+Exempt blind boxes, accessories, jade, and collectible cards when displayed and bound products belong to the same L3 category. Exempt apparel tops and bottoms when the displayed product is a SKU variant with only pattern or color differences.
+
+5. non_native
+Non-native means Chinese or incomprehensible Chinglish style in an international market.
+Hit when the creator uses long Chinese spoken expression, Chinese characters in text/stickers/background, or spoken English that is highly unusual or too grammatically broken to understand.
+Do not hit for slight accent when intelligible, or isolated non-local background speech that is not the creator's promotion. This workflow does not cover the broader Other Languages personalized category.
+
+6. still_frame
+Still frame means no product explanation and no real video footage.
+Hit when there is no verbal or written product explanation and the product is displayed through static images, live photos, screenshots, cutouts, or pasted product images.
+Do not hit when the video has meaningful real demonstration, even if some static slides are present. Do not hit from missing ASR/OCR alone if frames show clear product use.
+
+7. out_of_app_transactions
+Out-of-app transactions require both an external transaction route and purchase direction.
+Hit when the content includes PayPal, Venmo, Cash App, WhatsApp, Telegram, phone number, external website, offline store, or another payment app, and directs viewers to purchase, pay, contact, or complete the transaction through that route.
+Evidence can come from ASR, OCR, visual signage, or comments.
+Do not hit when external contact has unclear commercial intent, when the host clearly directs users to order inside TTS and the external mention is incidental, or when the external route is only for users who cannot access the TTS cart unless evasion is explicit.
+
+8. misleading_functionality_and_effect
+Misleading functionality and effect means the video materially exaggerates product function, effect, size, quality, capacity, safety, speed, or result.
+Hit when exaggerated filming, unrealistic information, impossible before/after effects, rapid or guaranteed outcomes, fake expert/medical endorsement, unrealistic cleaning/repair/beauty/health/weight/growth result, or impossible performance creates unreliable product expectations.
+Do not hit for normal positive marketing praise without concrete misleading function or effect. Do not hit just because is_AIGC is true.
+
+9. dangerous_behavior
+Dangerous behavior means unsafe or violent behavior that endangers life safety.
+Hit when content shows or encourages dangerous imitation, violent acts, unsafe product operation, or product demonstrations that create the illusion of fire, heavy smoke, explosion, weapon-like harm, or other life-safety risk.
+Do not hit for ordinary safe product use or decorative danger cues without realistic safety risk or unsafe promotional instruction.
+
+10. disgusting_and_terrifying
+Disgusting and terrifying means the content creates clear viewer discomfort.
+Hit for ear cleaning, close-up insects, terrifying atmosphere, dirty drains, sewers, dirty or messy places, bodily material, sudden screams, harsh terrifying sounds, or physically uncomfortable audio/visual experience.
+Do not hit for ordinary cleaning-product scenarios where a mildly dirty environment is acceptable, or minor background noise that does not block the main speaker.
+
+11. description_not_detailed
+Description not detailed means the video promotes a product but does not give enough product explanation.
+Most products can be acceptable if clearly and fully displayed. Electric products, digital products, skincare products, and health supplements must be both displayed and explained.
+Do not hit for makeup get-ready-with-me videos, card unboxing/break videos, or party board game intro videos when the SOP exemption conditions are met. Do not confuse this with only_marketing_sales_pitches.
+
+12. only_marketing_sales_pitches
+Only marketing sales pitches means the speech or text is only hard-sell marketing.
+Hit when ASR/OCR only emphasizes price, discount, gifts, promotion ending, stock pressure, urgency, checkout, cart, or purchase guidance, and has no substantive product function, specification, usage effect, usage method, material, compatibility, or scenario explanation. This applies to all product categories.
+Do not hit when there is weak but real product function, usage, specification, material, or scenario information. Do not hit from missing ASR/OCR alone.
+
+13. pornography_perception
+Pornography perception means sexualized or vulgar presentation.
+Hit when content contains unnecessary exposure or sexually suggestive action such as chest shaking, bending over to expose cleavage, prominent genital outlines, or intentionally sexualized body display; or the product itself creates high skin exposure and likely sensitive-body exposure.
+Do not hit for ordinary introduction, display, or description of intimate products without private-part nudity and without sexually suggestive conduct. Regular bikini use in an appropriate beach context is not enough by itself.
+
+14. no_physical_product_display
+No physical product display means the content discusses the product but does not show the physical product.
+Hit when there is verbal or written product explanation, but the product is shown only through stickers, cutouts, photos, screenshots, live images, webpage imagery, no visible product, or only a partial view that cannot confirm the bound product.
+If the bound product includes package or brand but the video only shows the product result or usage outcome without package or brand, this can also support no physical product display.
+Do not hit if the physical product is clearly shown and recognizable. If there is no product explanation, consider still_frame or irrelevant_promotion instead depending on evidence.
+
+15. unrealistic_or_continuity_error
+Unrealistic or continuity error means visual physics, identity, or continuity breaks that affect product understanding.
+Hit when video frames show objects morphing, clipping, floating, moving on their own, passing through surfaces, changing geometry, product identity drift, structure drift, pattern drift, content identity drift, impossible scale or pose change, object materialization, garbled/morphing product text or logo, fake AIGC speech/interview, impossible before-after effects, unrealistic product size/style/effect, AI avatar explaining the product without product appearance, or storage/drawer compartment contents changing between adjacent sampled frames without visible placement.
+When is_AIGC is true, pay extra attention to this issue type only. Still require concrete frame evidence.
+Do not hit because is_AIGC is true by itself. Do not over-focus on minor artifacts that do not affect product understanding. Do not claim exact elapsed time between frames without timestamps.
+
+Data availability rules
+If frame_list is empty, do not make video-frame visual claims.
+If images is empty or invalid, do not make product-image comparison claims.
+If ASR and OCR are empty, do not make spoken or written text claims.
+If comments are empty or only placeholders, do not claim comment-supported evidence.
+If evidence is suspicious but incomplete, prefer manual_review over a direct hit.
+
+Output requirements
+Return raw JSON only.
+Use Chinese summary and evidence explanations.
+Use only the 15 in-scope issue types plus none.
+detected_issue_types is multi-select.
+primary_issue_type must be one of detected_issue_types when overall_decision is problematic.
+primary_issue_type must be none when overall_decision is clean.
+Every hit or uncertain result must include concrete evidence.
+is_AIGC must be returned as true, false, or unknown.
