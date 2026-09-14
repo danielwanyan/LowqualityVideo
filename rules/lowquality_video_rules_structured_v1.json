@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-14-v1-initial-sop-15-labels",
+  "version": "2026-09-14-v2-no-comment-review-inputs",
   "project": "LowqualityVideo",
-  "scope": "Review one e-commerce short video using the existing video-product-lowquality input shape plus is_AIGC. The workflow covers only the 15 user-confirmed SOP issue types and does not cover the complete SOP.",
+  "scope": "Review one e-commerce short video using video/product evidence fields plus is_AIGC. The workflow covers only the 15 user-confirmed SOP issue types, does not cover the complete SOP, and does not use review or feedback fields.",
   "decision_values": [
     "problematic",
     "manual_review",
@@ -39,7 +39,7 @@
     "attention_boost_issue_types": [
       "unrealistic_or_continuity_error"
     ],
-    "must_not_trigger_issue_by_itself": "is_AIGC is only an attribute and attention signal. It must never create a hit without concrete frame, ASR, OCR, product image, or comment evidence.",
+    "must_not_trigger_issue_by_itself": "is_AIGC is only an attribute and attention signal. It must never create a hit without concrete frame, ASR, OCR, or product image evidence.",
     "no_attention_boost_issue_types": [
       "misleading_functionality_and_effect",
       "no_physical_product_display",
@@ -63,10 +63,6 @@
       "images",
       "seller_id_str",
       "country"
-    ],
-    "feedback": [
-      "comments",
-      "product_review_summary"
     ]
   },
   "rules": [
@@ -119,16 +115,14 @@
       "triggers": [
         "Video frame shows visible third-party creator watermark, username, platform mark, repost mark, or copied-source indicator.",
         "ASR/OCR clearly indicates reposting, copying, stolen content, or content taken from another creator.",
-        "A duet-like layout shows the current creator contributes no meaningful new product promotion and only carries another creator's product promotion.",
-        "Comment evidence says stolen, copied, reposted, or source creator when frame or ASR/OCR evidence also points to copied content."
+        "A duet-like layout shows the current creator contributes no meaningful new product promotion and only carries another creator's product promotion."
       ],
       "required_evidence": [
-        "strong internal evidence from video frames, ASR, OCR, or comments combined with frame or ASR/OCR evidence",
+        "strong internal evidence from video frames, ASR, or OCR",
         "specific evidence identifying copied or third-party creator content",
         "no external Pearl fields are required or available; judge only from current workflow inputs"
       ],
       "false_positive_boundaries": [
-        "Do not mark pirated_content from comments alone.",
         "Do not mark pirated_content for ordinary montage, public-resource footage, or likely authorized brand/seller material without strong internal evidence.",
         "Do not rely on external Pearl Similar Video, creator profile, account ownership, or penalty record because these fields are not part of the workflow input."
       ],
@@ -203,7 +197,7 @@
       "triggers": [
         "Content includes an external payment or transaction route such as PayPal, Venmo, Cash App, WhatsApp, Telegram, phone number, external website, offline store, or other payment app.",
         "Content directs viewers to purchase, pay, contact, or complete the transaction through that external route.",
-        "Evidence can come from ASR, OCR, visual signage, or comments."
+        "Evidence can come from ASR, OCR, or visual signage in video frames."
       ],
       "required_evidence": [
         "external transaction route",
@@ -375,7 +369,6 @@
     "If frame_list is empty, do not make video-frame visual claims.",
     "If images is empty or invalid, do not make product-image comparison claims.",
     "If ASR and OCR are empty, do not make spoken or written text claims.",
-    "If comments are empty or only placeholders, do not claim comment-supported evidence.",
     "If evidence is suspicious but incomplete, prefer manual_review over a direct hit.",
     "Do not use external Pearl fields, Similar Video tab, creator profile, account ownership, or penalty records."
   ],

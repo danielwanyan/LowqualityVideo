@@ -26,10 +26,6 @@ class ContextBuilderTest(unittest.TestCase):
             "product_image_manifest": "PRODUCT_IMAGE 001 | p1",
             "product_identity_panel": json.dumps({"product_id": "p1", "product_image_count": 1}),
             "product_data_quality": json.dumps({"product_images_available": True}),
-            "comment_risk_summary": "COMMENT_SIGNAL_STRENGTH: none",
-            "comment_issue_clusters": json.dumps({"cluster_types": []}),
-            "representative_comment_quotes": "",
-            "comment_data_quality": json.dumps({"comments_available": False}),
             "rules_context": "PROJECT: LowqualityVideo\nRule family: only_marketing_sales_pitches",
             "matched_rule_families": "only_marketing_sales_pitches",
         })
@@ -43,6 +39,13 @@ class ContextBuilderTest(unittest.TestCase):
         self.assertIn("IMAGE_INDEX 001 | VIDEO_FRAME 001", result["all_image_manifest"])
         self.assertIn("PROJECT: LowqualityVideo", result["risk_attention_packet"])
         self.assertIn("RULES_CONTEXT", result["risk_attention_packet"])
+        self.assertIn(
+            "EVIDENCE SCOPE: Use only video frames, ASR/OCR, and product reference evidence",
+            result["risk_attention_packet"],
+        )
+        self.assertNotIn("COMMENT_RISK_SUMMARY", result["risk_attention_packet"])
+        self.assertNotIn("COMMENT_ISSUE_CLUSTERS", result["risk_attention_packet"])
+        self.assertNotIn("REPRESENTATIVE_COMMENT_QUOTES", result["risk_attention_packet"])
 
     def test_missing_data_panel_records_absent_images_and_frames(self):
         result = self.run_node({
@@ -50,7 +53,6 @@ class ContextBuilderTest(unittest.TestCase):
             "product_image_urls": [],
             "video_data_quality": json.dumps({"video_frames_available": False}),
             "product_data_quality": json.dumps({"product_images_available": False}),
-            "comment_data_quality": json.dumps({"comments_available": False}),
         })
 
         self.assertEqual(result["all_image_urls"], [])

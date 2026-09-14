@@ -1,7 +1,7 @@
-LowqualityVideo Rules v1
+LowqualityVideo Rules v2
 
 Project scope
-Review one e-commerce short video using the existing video-product-lowquality input shape plus is_AIGC. The workflow covers only these 15 issue types:
+Review one e-commerce short video using video/product evidence fields plus is_AIGC. The workflow covers only these 15 issue types:
 potential_pirated, irrelevant_promotion, pirated_content, inconsistent_product_promotion, non_native, still_frame, out_of_app_transactions, misleading_functionality_and_effect, dangerous_behavior, disgusting_and_terrifying, description_not_detailed, only_marketing_sales_pitches, pornography_perception, no_physical_product_display, unrealistic_or_continuity_error.
 
 Do not cover the complete SOP. Do not output labels outside this list. Use none only when no in-scope issue is detected.
@@ -10,10 +10,10 @@ Frame sampling contract
 frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order. Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart. Do not claim exact elapsed time between frames unless explicit timestamps are provided.
 
 is_AIGC
-is_AIGC is an attribute, not a violation. is_AIGC only increases attention for unrealistic_or_continuity_error. It does not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, only_marketing_sales_pitches, pornography_perception, potential_pirated, pirated_content, or any other issue type. is_AIGC must not trigger any issue by itself. Every hit still requires concrete frame, ASR, OCR, product image, or comment evidence.
+is_AIGC is an attribute, not a violation. is_AIGC only increases attention for unrealistic_or_continuity_error. It does not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, only_marketing_sales_pitches, pornography_perception, potential_pirated, pirated_content, or any other issue type. is_AIGC must not trigger any issue by itself. Every hit still requires concrete frame, ASR, OCR, or product image evidence.
 
-No external Pearl fields
-Do not use external Pearl fields, Similar Video tab, creator profile, account ownership, penalty records, or creator history. Pirated and potential pirated must be judged only from current workflow inputs: video frames, ASR, OCR, comments, and product evidence.
+Evidence scope
+Use only video frames, ASR, OCR, and product evidence. Do not use external Pearl fields, Similar Video tab, creator profile, account ownership, penalty records, creator history, or feedback fields. Pirated and potential pirated must be judged only from current workflow inputs: video frames, ASR, OCR, and product evidence.
 
 Decision values
 problematic: one or more in-scope issue types have high-confidence evidence.
@@ -36,8 +36,7 @@ Do not hit when the video clearly demonstrates, explains, or uses the bound prod
 3. pirated_content
 Pirated content means confirmed non-original or copied creator content.
 Hit only with strong evidence such as visible third-party creator watermark, username, platform mark, repost mark, copied-source indicator, clear ASR/OCR saying the clip was copied/reposted/taken from another creator, or a duet-like layout where the creator adds no meaningful new product promotion and only carries another creator's product promotion.
-Comment evidence accusing reposting or stolen content can only strengthen the case when frame or ASR/OCR evidence already points to copied content.
-Do not hit from comments alone. Do not hit for ordinary montage, public-resource footage, or likely authorized brand/seller material without strong internal evidence. If suspicious but not conclusive, use manual_review.
+Do not use feedback fields to judge pirated_content. Do not hit for ordinary montage, public-resource footage, or likely authorized brand/seller material without strong internal evidence. If suspicious but not conclusive, use manual_review.
 
 4. inconsistent_product_promotion
 Inconsistent product promotion means the video promotes one e-commerce product while the bound product reference images show a materially different product.
@@ -58,7 +57,7 @@ Do not hit when the video has meaningful real demonstration, even if some static
 7. out_of_app_transactions
 Out-of-app transactions require both an external transaction route and purchase direction.
 Hit when the content includes PayPal, Venmo, Cash App, WhatsApp, Telegram, phone number, external website, offline store, or another payment app, and directs viewers to purchase, pay, contact, or complete the transaction through that route.
-Evidence can come from ASR, OCR, visual signage, or comments.
+Evidence can come from ASR, OCR, or visual signage in video frames.
 Do not hit when external contact has unclear commercial intent, when the host clearly directs users to order inside TTS and the external mention is incidental, or when the external route is only for users who cannot access the TTS cart unless evasion is explicit.
 
 8. misleading_functionality_and_effect
@@ -107,7 +106,7 @@ Data availability rules
 If frame_list is empty, do not make video-frame visual claims.
 If images is empty or invalid, do not make product-image comparison claims.
 If ASR and OCR are empty, do not make spoken or written text claims.
-If comments are empty or only placeholders, do not claim comment-supported evidence.
+Use only video frames, ASR, OCR, and product evidence for analysis in this workflow.
 If evidence is suspicious but incomplete, prefer manual_review over a direct hit.
 
 Output requirements

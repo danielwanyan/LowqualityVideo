@@ -24,8 +24,6 @@ class RulesBrainTest(unittest.TestCase):
             "video_signal_panel": "{}",
             "aigc_attribute_panel": "{}",
             "product_identity_panel": "{}",
-            "comment_risk_summary": "",
-            "comment_issue_clusters": "{}",
         }
         base.update(params)
         return asyncio.run(rules_brain.main(DummyArgs(base)))
@@ -57,8 +55,9 @@ class RulesBrainTest(unittest.TestCase):
         self.assertNotIn("no_physical_product_display", families)
         self.assertIn("is_AIGC=true only boosts unrealistic_or_continuity_error", result["rule_attention_debug"])
 
-    def test_comment_piracy_cluster_recalls_piracy_rules_with_warning(self):
+    def test_comment_inputs_are_ignored_even_if_provided(self):
         result = self.run_node({
+            "comment_risk_summary": "COMMENT_SIGNAL_STRENGTH: strong",
             "comment_issue_clusters": json.dumps({
                 "cluster_types": ["pirated_or_reposted_claim"],
                 "clusters": {
@@ -72,15 +71,18 @@ class RulesBrainTest(unittest.TestCase):
         families = result["matched_rule_families"].split(", ")
         self.assertIn("pirated_content", families)
         self.assertIn("potential_pirated", families)
-        self.assertIn("Comments alone cannot hit pirated_content", result["rules_context"])
+        self.assertNotIn("comment cluster", result["rule_attention_debug"])
+        self.assertIn("baseline high-FP boundary", result["rule_attention_debug"])
+        self.assertIn("Use no review/commentary inputs and no external Pearl fields", result["rules_context"])
+        self.assertNotIn("stolen from original creator", result["rules_context"])
 
     def test_falls_back_to_text_rules_when_structured_json_missing(self):
         result = self.run_node({
             "rules_json_body": "",
-            "rules_text_body": "LowqualityVideo Rules v1\nDo not use external Pearl fields.",
+            "rules_text_body": "LowqualityVideo Rules v2\nDo not use external Pearl fields.",
         })
 
-        self.assertIn("LowqualityVideo Rules v1", result["rules_context"])
+        self.assertIn("LowqualityVideo Rules v2", result["rules_context"])
         self.assertIn("fallback_text_rules", result["matched_rule_families"])
 
     def test_output_keys_match_aicolate_output_panel(self):

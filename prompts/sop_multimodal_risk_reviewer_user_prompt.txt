@@ -32,10 +32,6 @@ Video text:
 ASR: {{ASR}}
 OCR: {{OCR}}
 
-Comment and review source:
-comments: {{comments}}
-product_review_summary: {{product_review_summary}}
-
 Required review process:
 1. Check data availability first. If video frames or product images are missing, do not invent visual evidence.
 2. If gated_all_image_urls is non-empty, directly inspect the images in the visual input array.
@@ -44,9 +40,10 @@ Required review process:
 5. Review only the 15 in-scope issue types listed below. Do not cover the complete SOP.
 6. Use is_AIGC only as an attribute and as an attention boost for unrealistic_or_continuity_error.
 7. Do not use is_AIGC to hit misleading_functionality_and_effect, no_physical_product_display, still_frame, potential_pirated, pirated_content, pornography_perception, or any other issue by itself.
-8. For pirated_content and potential_pirated, require strong internal evidence from frames or ASR/OCR. Comments alone cannot support pirated_content or potential_pirated.
-9. Obey forbidden_claims from Evidence Gate. If a claim is forbidden, do not make it.
-10. Return raw JSON only.
+8. Use only video frames, ASR, OCR, and product evidence for analysis.
+9. For pirated_content and potential_pirated, require strong internal evidence from frames or ASR/OCR.
+10. Obey forbidden_claims from Evidence Gate. If a claim is forbidden, do not make it.
+11. Return raw JSON only.
 
 Allowed overall_decision values:
 problematic
@@ -101,8 +98,6 @@ Output JSON schema:
     "product_images_available": true,
     "asr_available": true,
     "ocr_available": true,
-    "comments_available": true,
-    "product_review_summary_available": true,
     "missing_or_weak_inputs": []
   },
   "manual_review_reasons": [],
@@ -121,6 +116,6 @@ Additional output rules:
 - issue_results must include all 15 issue keys exactly.
 - Do not output legacy issue types from other projects.
 - All summaries, reasons, and evidence fields must be in Chinese. Direct source quotes may remain in source language.
-- If comments changed or supported the risk interpretation, mention that in final_reason_cn. If comments are not decisive, say so briefly.
+- Use only video frames, ASR, OCR, and product evidence for analysis.
 - If evidence is missing, say what is missing rather than inventing it.
 - Return raw JSON only. No markdown. No explanation outside the JSON.

@@ -37,6 +37,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
+        self.assertEqual(data["version"], "2026-09-14-v2-no-comment-review-inputs")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(
             data["primary_issue_types"],
@@ -50,6 +51,32 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         self.assertEqual(attention, ["unrealistic_or_continuity_error"])
         self.assertIn("must_not_trigger_issue_by_itself", data["is_AIGC_usage"])
+
+    def test_comments_and_product_review_summary_are_excluded(self):
+        data = self.load_rules()
+
+        channels = data["evidence_channels"]
+
+        self.assertNotIn("feedback", channels)
+        self.assertNotIn("comments", channels.get("video_content", []))
+        self.assertNotIn("comments", channels.get("product_reference", []))
+        self.assertNotIn("product_review_summary", channels.get("video_content", []))
+        self.assertNotIn("product_review_summary", channels.get("product_reference", []))
+        self.assertNotIn("excluded_from_analysis", channels)
+
+        for rule in data["rules"]:
+            joined = " ".join(
+                str(item)
+                for key in ("triggers", "required_evidence")
+                for item in rule.get(key, [])
+            ).lower()
+            self.assertNotIn("comment evidence", joined)
+            self.assertNotIn("comments", joined)
+            self.assertNotIn("product_review_summary", joined)
+
+        raw_text = STRUCTURED_RULES.read_text(encoding="utf-8")
+        self.assertNotIn("comments", raw_text)
+        self.assertNotIn("product_review_summary", raw_text)
 
     def test_piracy_rules_require_strong_internal_evidence(self):
         data = self.load_rules()
@@ -65,9 +92,10 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v1", text)
+        self.assertIn("LowqualityVideo Rules v2", text)
         self.assertIn("is_AIGC only increases attention for unrealistic_or_continuity_error", text)
         self.assertIn("Do not use external Pearl fields", text)
+        self.assertIn("Use only video frames, ASR, OCR, and product evidence", text)
         self.assertIn("potential_pirated", text)
         self.assertIn("pirated_content", text)
 

@@ -256,7 +256,7 @@ async def main(args: Args) -> Output:
             "is_AIGC is an attribute, not a violation.",
             "is_AIGC only increases attention for unrealistic_or_continuity_error.",
             "is_AIGC must not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, or pirated labels.",
-            "A hit still requires concrete frame, ASR, OCR, product image, or comment evidence.",
+            "A hit still requires concrete frame, ASR, OCR, or product image evidence.",
         ],
     }
 
@@ -278,7 +278,7 @@ async def main(args: Args) -> Output:
         },
         "notes": [
             "candidate_attention is not a final decision.",
-            "For pirated labels, require strong internal evidence from frames or ASR/OCR; comments alone are insufficient.",
+            "Use video frames, ASR/OCR, and product reference evidence as the analysis scope.",
         ],
     }
 

@@ -54,9 +54,14 @@ class PromptFilesTest(unittest.TestCase):
             "{{country}}",
             "{{seller_id_str}}",
             "{{is_AIGC}}",
+            "{{ASR}}",
+            "{{OCR}}",
         ]
         for variable in required_variables:
             self.assertIn(variable, text)
+
+        self.assertNotIn("{{comments}}", text)
+        self.assertNotIn("{{product_review_summary}}", text)
 
     def test_user_prompt_lists_only_allowed_issue_types(self):
         text = USER_PROMPT.read_text(encoding="utf-8")
@@ -80,7 +85,7 @@ class PromptFilesTest(unittest.TestCase):
 
         self.assertIn("Return raw JSON only", text)
         self.assertIn("All summaries, reasons, and evidence fields must be in Chinese", text)
-        self.assertIn("Comments alone cannot support pirated_content or potential_pirated", text)
+        self.assertIn("Use only video frames, ASR, OCR, and product evidence for analysis", text)
 
 
 if __name__ == "__main__":

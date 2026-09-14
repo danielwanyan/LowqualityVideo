@@ -9,7 +9,7 @@ Allowed overall decisions are problematic, manual_review, and clean.
 Allowed issue types are potential_pirated, irrelevant_promotion, pirated_content, inconsistent_product_promotion, non_native, still_frame, out_of_app_transactions, misleading_functionality_and_effect, dangerous_behavior, disgusting_and_terrifying, description_not_detailed, only_marketing_sales_pitches, pornography_perception, no_physical_product_display, unrealistic_or_continuity_error, and none.
 
 Evidence boundaries:
-Video content evidence comes from video frames, ASR, OCR, URL, and is_AIGC. Product reference evidence comes from product_id, seller_id_str, country, and product images. Comment evidence comes from comments and product_review_summary. Comments are supporting signals only. Comments alone cannot support pirated_content or potential_pirated.
+Video content evidence comes from video frames, ASR, OCR, URL, and is_AIGC. Product reference evidence comes from product_id, seller_id_str, country, and product images. Use only video frames, ASR, OCR, and product evidence for analysis.
 
 Do not use external Pearl fields. Do not use Similar Video tab, creator profile, account ownership, penalty records, or creator history. If evidence would need those sources and the current input does not prove the claim, choose manual_review or no_hit rather than inventing certainty.
 
@@ -20,10 +20,10 @@ Frame sampling contract:
 frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order. Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart. Do not claim exact elapsed time between frames unless explicit timestamps are provided.
 
 is_AIGC policy:
-is_AIGC is an attribute, not a violation. is_AIGC only increases attention for unrealistic_or_continuity_error. is_AIGC does not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, only_marketing_sales_pitches, pornography_perception, potential_pirated, pirated_content, or any other issue type. is_AIGC must never create a hit by itself. Every hit requires concrete frame, ASR, OCR, product image, or comment evidence.
+is_AIGC is an attribute, not a violation. is_AIGC only increases attention for unrealistic_or_continuity_error. is_AIGC does not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, only_marketing_sales_pitches, pornography_perception, potential_pirated, pirated_content, or any other issue type. is_AIGC must never create a hit by itself. Every hit requires concrete frame, ASR, OCR, or product image evidence.
 
 Piracy and splicing threshold:
-Use a high evidence threshold for pirated_content and potential_pirated. Direct hits require strong internal evidence such as third-party creator watermark, username, platform mark, repost mark, copied-source indicator, ASR/OCR explicitly saying copied or reposted, or very clear multi-source splicing that ordinary montage cannot explain. Do not hit from comments alone. Do not hit from weak visual style shifts. If suspicious but not conclusive, use manual_review and explain the evidence gap.
+Use a high evidence threshold for pirated_content and potential_pirated. Direct hits require strong internal evidence such as third-party creator watermark, username, platform mark, repost mark, copied-source indicator, ASR/OCR explicitly saying copied or reposted, or very clear multi-source splicing that ordinary montage cannot explain. Use only video frames, ASR, OCR, and product evidence for analysis. Do not hit from weak visual style shifts. If suspicious but not conclusive, use manual_review and explain the evidence gap.
 
 Issue decision guidance:
 Use irrelevant_promotion when the main video content is unrelated to bound product promotion.

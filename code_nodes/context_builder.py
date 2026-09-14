@@ -60,13 +60,12 @@ def _build_all_image_manifest(product_urls, frame_urls):
     return "\n".join(lines)
 
 
-def _build_missing_data_panel(product_urls, frame_urls, video_data_quality, product_data_quality, comment_data_quality):
+def _build_missing_data_panel(product_urls, frame_urls, video_data_quality, product_data_quality):
     lines = [
         f"PRODUCT_IMAGE_COUNT: {len(product_urls)}",
         f"VIDEO_FRAME_COUNT: {len(frame_urls)}",
         f"VIDEO_DATA_QUALITY: {_compact(video_data_quality, 900)}",
         f"PRODUCT_DATA_QUALITY: {_compact(product_data_quality, 900)}",
-        f"COMMENT_DATA_QUALITY: {_compact(comment_data_quality, 900)}",
     ]
     if not product_urls:
         lines.append("WARNING: product images are missing; do not make strong inconsistent_product_promotion claims.")
@@ -91,11 +90,6 @@ async def main(args: Args) -> Output:
     product_identity_panel = _to_text(params.get("product_identity_panel"))
     product_data_quality = _to_text(params.get("product_data_quality"))
 
-    comment_risk_summary = _to_text(params.get("comment_risk_summary"))
-    comment_issue_clusters = _to_text(params.get("comment_issue_clusters"))
-    representative_comment_quotes = _to_text(params.get("representative_comment_quotes"))
-    comment_data_quality = _to_text(params.get("comment_data_quality"))
-
     rules_context = _to_text(params.get("rules_context"))
     matched_rule_families = _to_text(params.get("matched_rule_families"))
 
@@ -106,7 +100,6 @@ async def main(args: Args) -> Output:
         video_frame_urls,
         video_data_quality,
         product_data_quality,
-        comment_data_quality,
     )
 
     product_comparison_tasks = "\n".join([
@@ -119,22 +112,15 @@ async def main(args: Args) -> Output:
         "5. Strong inconsistent_product_promotion requires product image evidence.",
         "6. Check no_physical_product_display only when the video explains or promotes a product but physical product/package evidence is absent or only static/cutout/screenshot.",
         "7. Check irrelevant_promotion when the main video topic is unrelated to the bound product.",
-        "8. Check potential_pirated and pirated_content only with strong internal frame/ASR/OCR evidence; comments alone are insufficient.",
+        "8. Check potential_pirated and pirated_content only with strong internal frame/ASR/OCR evidence.",
         "9. Do not use external Pearl fields, Similar Video tab, creator profile, or penalty records.",
         "10. Do not claim exact elapsed time between frames unless explicit timestamps are provided.",
-    ])
-
-    comment_evidence_panel = "\n".join([
-        "COMMENT / REVIEW SUPPORTING SIGNALS",
-        f"COMMENT_RISK_SUMMARY:\n{_compact(comment_risk_summary, 1200)}",
-        f"COMMENT_ISSUE_CLUSTERS:\n{_compact(comment_issue_clusters, 1600)}",
-        f"REPRESENTATIVE_COMMENT_QUOTES:\n{_compact(representative_comment_quotes, 1200)}",
-        "Comments are supporting signals only. For pirated labels, comments must be supported by frame or ASR/OCR evidence.",
     ])
 
     risk_attention_packet = "\n\n".join([
         "PROJECT: LowqualityVideo",
         "SCOPE: Use only the 15 in-scope issue types plus none. Do not cover the complete SOP.",
+        "EVIDENCE SCOPE: Use only video frames, ASR/OCR, and product reference evidence in this workflow.",
         f"FRAME SAMPLING CONTRACT: {FRAME_SAMPLING_NOTE}",
         "VISUAL INPUT ORDER",
         all_image_manifest,
@@ -146,7 +132,6 @@ async def main(args: Args) -> Output:
         "PRODUCT REFERENCE EVIDENCE",
         f"PRODUCT_IMAGE_MANIFEST:\n{_compact(product_image_manifest, 1500)}",
         f"PRODUCT_IDENTITY_PANEL:\n{_compact(product_identity_panel, 1200)}",
-        comment_evidence_panel,
         "RULE ATTENTION",
         f"MATCHED_RULE_FAMILIES: {matched_rule_families or 'none'}",
         f"RULES_CONTEXT:\n{_compact(rules_context, 2600)}",

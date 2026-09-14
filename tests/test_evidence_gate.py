@@ -22,8 +22,6 @@ class EvidenceGateTest(unittest.TestCase):
             "video_frame_urls": ["https://cdn.example.com/f.jpg"],
             "video_data_quality": json.dumps({"video_frames_available": True, "asr_available": True, "ocr_available": False}),
             "product_data_quality": json.dumps({"product_images_available": True}),
-            "comment_data_quality": json.dumps({"comments_available": True, "product_review_summary_available": False}),
-            "comment_issue_clusters": json.dumps({"cluster_types": []}),
             "risk_attention_packet": "PROJECT: LowqualityVideo",
             "missing_data_panel": "none",
         })
@@ -44,8 +42,6 @@ class EvidenceGateTest(unittest.TestCase):
             "video_frame_urls": [],
             "video_data_quality": json.dumps({"video_frames_available": False, "asr_available": True, "ocr_available": True}),
             "product_data_quality": json.dumps({"product_images_available": True}),
-            "comment_data_quality": json.dumps({"comments_available": False}),
-            "comment_issue_clusters": json.dumps({"cluster_types": []}),
         })
 
         status = json.loads(result["evidence_status_json"])
@@ -54,20 +50,18 @@ class EvidenceGateTest(unittest.TestCase):
         self.assertNotIn("unrealistic_or_continuity_error", status["allowed_issue_types"])
         self.assertIn("Do not make video-frame visual claims", result["forbidden_claims"])
 
-    def test_comment_only_piracy_signal_sets_manual_review_floor(self):
+    def test_all_core_evidence_missing_sets_manual_review_floor(self):
         result = self.run_node({
             "product_image_urls": [],
             "video_frame_urls": [],
             "video_data_quality": json.dumps({"video_frames_available": False, "asr_available": False, "ocr_available": False}),
             "product_data_quality": json.dumps({"product_images_available": False}),
-            "comment_data_quality": json.dumps({"comments_available": True, "meaningful_comment_count": 2}),
-            "comment_issue_clusters": json.dumps({"cluster_types": ["pirated_or_reposted_claim"]}),
         })
 
         status = json.loads(result["evidence_status_json"])
-        self.assertTrue(status["comment_only_piracy_signal"])
-        self.assertEqual(status["recommended_decision_floor"], "manual_review_for_comment_only_piracy_signal")
-        self.assertIn("Comments alone cannot support pirated_content", result["forbidden_claims"])
+        self.assertTrue(status["all_core_evidence_missing"])
+        self.assertEqual(status["recommended_decision_floor"], "manual_review_for_data_insufficiency")
+        self.assertNotIn("comments", result["forbidden_claims"].lower())
 
     def test_output_keys_match_aicolate_output_panel(self):
         result = self.run_node({})

@@ -26,7 +26,7 @@ The workflow reuses the verified input shape and orchestration pattern from the 
 
 ## Start Inputs
 
-The new workflow uses the existing `video-product-lowquality` inputs plus one new field:
+The new workflow uses the video and product evidence fields from the existing `video-product-lowquality` input shape, removes `comments` and `product_review_summary` from analysis, and adds one new field:
 
 ```text
 video_id
@@ -38,8 +38,6 @@ url
 product_id
 images
 seller_id_str
-comments
-product_review_summary
 frame_list
 is_AIGC
 ```
@@ -50,8 +48,6 @@ Field semantics:
 - `ASR`: speech transcript text. It can be empty.
 - `OCR`: visual text extracted from video frames. It can be empty.
 - `images`: product reference image URLs, normally encoded as a JSON list.
-- `comments`: video comments and CCR-style signals when available.
-- `product_review_summary`: product review summary text, available from the old input contract but not the main evidence source for the selected label set.
 - `is_AIGC`: an attribute field indicating whether the video is marked as AIGC generated.
 
 `is_AIGC` behavior:
@@ -59,7 +55,13 @@ Field semantics:
 - It is returned as an attribute in the output.
 - It only increases attention for `unrealistic_or_continuity_error`.
 - It does not increase attention for `misleading_functionality_and_effect`, `no_physical_product_display`, `still_frame`, or any other issue type.
-- It never creates a hit without concrete frame, ASR, OCR, product image, or comment evidence.
+- It never creates a hit without concrete frame, ASR, OCR, or product image evidence.
+
+Excluded inputs:
+
+- `comments` and `product_review_summary` must not be wired into the analysis workflow.
+- Do not create a comment/review builder node for this project.
+- Do not use comment or product review content to support or deny any label.
 
 ## In-Scope Issue Types
 
@@ -94,7 +96,6 @@ Start
   ├─ HTTP: lowquality_video_rules_text_fetch
   ├─ Code: Video_Content_Builder
   ├─ Code: Product_Evidence_Builder
-  ├─ Code: Comment_Signal_Builder
   └─ Code: Rules_Brain
        ↓
 Code: Context_Builder
@@ -191,32 +192,6 @@ Responsibilities:
 - Mark product image missing or invalid states.
 - Avoid final judgments.
 
-### Comment_Signal_Builder
-
-Inputs:
-
-```text
-comments
-product_review_summary
-product_id
-```
-
-Outputs:
-
-```text
-comment_risk_summary
-comment_issue_clusters
-representative_comment_quotes
-comment_data_quality
-```
-
-Responsibilities:
-
-- Extract comments that can support the selected 15 labels.
-- Use comment evidence as secondary support, especially for pirated/reposted/stolen content, misleading claims, disgusting content, and off-platform transaction signals.
-- Do not hit pirated or potential pirated from comments alone.
-- Do not introduce product quality labels outside this project scope.
-
 ### Rules_Brain
 
 Inputs:
@@ -226,8 +201,7 @@ rules_json_body
 rules_text_body
 video_signal_panel
 product_identity_panel
-comment_risk_summary
-is_AIGC
+aigc_attribute_panel
 ```
 
 Outputs:
@@ -258,9 +232,6 @@ video_signal_panel
 product_image_urls
 product_image_manifest
 product_identity_panel
-comment_risk_summary
-comment_issue_clusters
-representative_comment_quotes
 rules_context
 matched_rule_families
 ```
@@ -279,7 +250,8 @@ Responsibilities:
 - Put product images before video frames in `all_image_urls`.
 - Explain the image order in `all_image_manifest`.
 - Preserve the frame sampling contract.
-- Separate video evidence, product reference evidence, comment evidence, AIGC attribute, and rule context.
+- Separate video evidence, product reference evidence, AIGC attribute, and rule context.
+- Explicitly state that comments and product_review_summary are excluded from analysis.
 
 ### Evidence_Gate
 
@@ -290,7 +262,6 @@ video_frame_urls
 product_image_urls
 video_data_quality
 product_data_quality
-comment_data_quality
 risk_attention_packet
 missing_data_panel
 ```
@@ -349,7 +320,6 @@ Direct `pirated_content` requires strong evidence such as:
 - Visible third-party creator watermark, username, platform mark, or repost signal in the video frame.
 - Clear ASR/OCR evidence that the clip was copied, reposted, or taken from another creator.
 - A duet-like layout where the creator contributes no meaningful new product promotion and only carries another creator's product promotion.
-- Comment evidence accusing reposting or stolen content can only strengthen the case when frame or ASR/OCR evidence already points to copied content.
 
 Direct `potential_pirated` can be used for:
 
@@ -394,7 +364,7 @@ Hit when the video has no verbal or written product explanation and the product 
 Hit when evidence shows both:
 
 - a payment or transaction route outside the platform, such as PayPal, Venmo, phone number, website, offline store, or other payment app; and
-- a promotion cue directing the user to transact through that route, from ASR, OCR, visual signage, or comments.
+- a promotion cue directing the user to transact through that route, from ASR, OCR, or visual signage in video frames.
 
 Do not hit when the host also clearly promotes orders inside TTS, or when traffic redirection has unclear commercial intent.
 
@@ -455,8 +425,6 @@ The final LLM output must be one JSON object:
     "product_images_available": true,
     "asr_available": true,
     "ocr_available": true,
-    "comments_available": true,
-    "product_review_summary_available": true,
     "missing_or_weak_inputs": []
   },
   "manual_review_reasons": [],
