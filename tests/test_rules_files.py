@@ -37,12 +37,43 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-09-14-v2-no-comment-review-inputs")
+        self.assertEqual(data["version"], "2026-09-15-v3-cross-project-rule-integration")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(
             data["primary_issue_types"],
             sorted(EXPECTED_ISSUE_TYPES) + ["none"],
         )
+
+    def test_cross_project_rule_adaptations_are_recorded(self):
+        data = self.load_rules()
+
+        adaptations = data["source_rule_adaptations"]
+        source_projects = {item["source_project"] for item in adaptations}
+
+        self.assertEqual(source_projects, {
+            "aigc-ipp",
+            "aigc-misleading",
+            "dnd",
+            "onlymarketpitch",
+            "video-product-lowquality",
+        })
+
+        joined = json.dumps(data, ensure_ascii=False).lower()
+        required_phrases = [
+            "compare against all provided product images",
+            "packaging and content separately",
+            "product_category is only exemption context",
+            "5 detail dimensions",
+            "subjective praise and hard-sell text do not count",
+            "hard-sell marketing",
+            "pattern identity drift",
+            "hardware layout drift",
+            "food or content identity drift",
+            "same-compartment continuity",
+            "evidence gate",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, joined)
 
     def test_is_aigc_attention_only_targets_unrealistic_or_continuity(self):
         data = self.load_rules()
@@ -92,7 +123,13 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v2", text)
+        self.assertIn("LowqualityVideo Rules v3", text)
+        self.assertIn("Cross-project rule adaptations", text)
+        self.assertIn("AIGC-IPP -> inconsistent_product_promotion", text)
+        self.assertIn("AIGC-Misleading -> misleading_functionality_and_effect / unrealistic_or_continuity_error", text)
+        self.assertIn("DND -> description_not_detailed", text)
+        self.assertIn("Only-Market-Pitch -> only_marketing_sales_pitches", text)
+        self.assertIn("video-product-lowquality -> workflow and evidence safeguards", text)
         self.assertIn("is_AIGC only increases attention for unrealistic_or_continuity_error", text)
         self.assertIn("Do not use external Pearl fields", text)
         self.assertIn("Use only video frames, ASR, OCR, and product evidence", text)

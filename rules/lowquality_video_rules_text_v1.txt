@@ -1,10 +1,17 @@
-LowqualityVideo Rules v2
+LowqualityVideo Rules v3
 
 Project scope
 Review one e-commerce short video using video/product evidence fields plus is_AIGC. The workflow covers only these 15 issue types:
 potential_pirated, irrelevant_promotion, pirated_content, inconsistent_product_promotion, non_native, still_frame, out_of_app_transactions, misleading_functionality_and_effect, dangerous_behavior, disgusting_and_terrifying, description_not_detailed, only_marketing_sales_pitches, pornography_perception, no_physical_product_display, unrealistic_or_continuity_error.
 
 Do not cover the complete SOP. Do not output labels outside this list. Use none only when no in-scope issue is detected.
+
+Cross-project rule adaptations
+AIGC-IPP -> inconsistent_product_promotion: require promotion first, compare against all provided product images, compare packaging and content separately, use product_category only as exemption context, ignore OCR text / brand text / lighting / render effects / pure color differences alone, and do not force mismatch when the physical product is not shown.
+AIGC-Misleading -> misleading_functionality_and_effect / unrealistic_or_continuity_error: keep hallucination, function exaggeration, false claim, and size/scale rules; check pattern identity drift, hardware layout drift, food or content identity drift, supported-function effect limits, storage-capacity exaggeration, toy/model scale effects, and product-reference food quantity or texture conflicts.
+DND -> description_not_detailed: use 5 detail dimensions: function or efficacy, features or advantages, usage or scenario, parameters or specifications, and materials or ingredients. Subjective praise and hard-sell text do not count, and one sentence should not be double-counted across dimensions.
+Only-Market-Pitch -> only_marketing_sales_pitches: hit only when ASR/OCR is hard-sell marketing such as price, discount, sale, hurry, limited stock, add to cart, checkout, free shipping, bundle, or gift, with no substantive product information.
+video-product-lowquality -> workflow and evidence safeguards: keep GitHub raw rules, Rules Brain, Evidence Gate, single LLM, Output Validator, product-image-first visual manifest, product-local image indices, and frame_list adjacent-frame semantics.
 
 Frame sampling contract
 frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order. Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart. Do not claim exact elapsed time between frames unless explicit timestamps are provided.
@@ -40,9 +47,9 @@ Do not use feedback fields to judge pirated_content. Do not hit for ordinary mon
 
 4. inconsistent_product_promotion
 Inconsistent product promotion means the video promotes one e-commerce product while the bound product reference images show a materially different product.
-Hit when video ASR/OCR or frames promote an EC product, but the displayed product differs from the bound product in type, shape, structure, packaging, material, style, size, variant, or core design.
-Product images are required for a strong hit.
-Exempt blind boxes, accessories, jade, and collectible cards when displayed and bound products belong to the same L3 category. Exempt apparel tops and bottoms when the displayed product is a SKU variant with only pattern or color differences.
+Hit when video ASR/OCR or frames promote an EC product, but the displayed product differs from the bound product in type, shape, structure, packaging, material, style, size, variant, package format, quantity, food texture, or core design.
+Product images are required for a strong hit. Compare against all provided product images before deciding mismatch. Check packaging and content separately: packaging match alone does not clear content mismatch, and content match alone does not clear packaging mismatch.
+Exempt blind boxes, accessories, jade, and collectible cards when displayed and bound products belong to the same L3 category. Exempt apparel tops and bottoms when the displayed product is a SKU variant with only pattern or color differences. product_category is only exemption context, not visual proof of consistency. Do not hit from OCR text, brand text, lighting, render effects, small accessories, decoration, or pure color differences alone.
 
 5. non_native
 Non-native means Chinese or incomprehensible Chinglish style in an international market.
@@ -62,8 +69,9 @@ Do not hit when external contact has unclear commercial intent, when the host cl
 
 8. misleading_functionality_and_effect
 Misleading functionality and effect means the video materially exaggerates product function, effect, size, quality, capacity, safety, speed, or result.
-Hit when exaggerated filming, unrealistic information, impossible before/after effects, rapid or guaranteed outcomes, fake expert/medical endorsement, unrealistic cleaning/repair/beauty/health/weight/growth result, or impossible performance creates unreliable product expectations.
-Do not hit for normal positive marketing praise without concrete misleading function or effect. Do not hit just because is_AIGC is true.
+Hit when exaggerated filming, unrealistic information, impossible before/after effects, rapid or guaranteed outcomes, fake expert/medical endorsement, unrealistic cleaning/repair/beauty/health/weight/growth result, impossible performance, unsupported quantity/weight/texture/package-count impression, or impossible capacity/organizing effect creates unreliable product expectations.
+Supported functions do not automatically make effect strength realistic. Mist, spray, cooling, light, motion, cleaning, cooking, blending, or storage demonstrations must still stay within same-category realistic capability.
+Do not hit for normal positive marketing praise without concrete misleading function or effect. Do not hit kitchen or cooking videos for normal jump cuts, steam, browning, finished-food beauty shots, or omitted waiting time unless there is an impossible process, false time/effect claim, or input/output inconsistency. Do not treat OCR numbers, platform UI counts, screen garbage, or ambiguous digits as false claims unless they clearly bind to product sales, rating, efficacy, certification, ranking, weight, or quantity. Do not hit just because is_AIGC is true.
 
 9. dangerous_behavior
 Dangerous behavior means unsafe or violent behavior that endangers life safety.
@@ -77,13 +85,14 @@ Do not hit for ordinary cleaning-product scenarios where a mildly dirty environm
 
 11. description_not_detailed
 Description not detailed means the video promotes a product but does not give enough product explanation.
-Most products can be acceptable if clearly and fully displayed. Electric products, digital products, skincare products, and health supplements must be both displayed and explained.
+Most products can be acceptable if clearly and fully displayed. Electric products, digital products, skincare products, and health supplements must be both displayed and explained. Use the 5 detail dimensions: function or efficacy, features or advantages, usage or scenario, parameters or specifications, and materials or ingredients.
+Subjective praise such as amazing, good, beautiful, I love this, and hard-sell text do not count as product detail. Do not double-count one sentence across multiple dimensions. If ASR appears polluted or unrelated to the displayed product, prefer manual_review instead of a confident hit.
 Do not hit for makeup get-ready-with-me videos, card unboxing/break videos, or party board game intro videos when the SOP exemption conditions are met. Do not confuse this with only_marketing_sales_pitches.
 
 12. only_marketing_sales_pitches
 Only marketing sales pitches means the speech or text is only hard-sell marketing.
-Hit when ASR/OCR only emphasizes price, discount, gifts, promotion ending, stock pressure, urgency, checkout, cart, or purchase guidance, and has no substantive product function, specification, usage effect, usage method, material, compatibility, or scenario explanation. This applies to all product categories.
-Do not hit when there is weak but real product function, usage, specification, material, or scenario information. Do not hit from missing ASR/OCR alone.
+Hit when ASR/OCR only emphasizes price, discount, gifts, promotion ending, stock pressure, urgency, checkout, cart, purchase guidance, free shipping, bundle, last chance, do not miss, limited stock, or similar hard-sell marketing, and has no substantive product function, specification, usage effect, usage method, material, compatibility, capacity, ingredient, or scenario explanation. This applies to all product categories.
+Do not hit when there is weak but real product function, usage, specification, material, ingredient, compatibility, capacity, or scenario information. Do not collapse description_not_detailed into this label. Do not hit from missing ASR/OCR alone.
 
 13. pornography_perception
 Pornography perception means sexualized or vulgar presentation.
@@ -99,8 +108,9 @@ Do not hit if the physical product is clearly shown and recognizable. If there i
 15. unrealistic_or_continuity_error
 Unrealistic or continuity error means visual physics, identity, or continuity breaks that affect product understanding.
 Hit when video frames show objects morphing, clipping, floating, moving on their own, passing through surfaces, changing geometry, product identity drift, structure drift, pattern drift, content identity drift, impossible scale or pose change, object materialization, garbled/morphing product text or logo, fake AIGC speech/interview, impossible before-after effects, unrealistic product size/style/effect, AI avatar explaining the product without product appearance, or storage/drawer compartment contents changing between adjacent sampled frames without visible placement.
+Also check product surface pattern identity drift, hardware layout drift, food or content identity drift, small toy/model full-size environmental effects, wrong-location mist/smoke/light/liquid emission, and same-compartment continuity for transparent storage products.
 When is_AIGC is true, pay extra attention to this issue type only. Still require concrete frame evidence.
-Do not hit because is_AIGC is true by itself. Do not over-focus on minor artifacts that do not affect product understanding. Do not claim exact elapsed time between frames without timestamps.
+Do not hit because is_AIGC is true by itself. Do not over-focus on minor artifacts that do not affect product understanding. Do not hit normal cooking color change, steaming, browning, shrinkage, folding, perspective, crop, occlusion, motion blur, low resolution, supported SKU switch, or ordinary lens distortion by itself. Do not claim exact elapsed time between frames without timestamps.
 
 Data availability rules
 If frame_list is empty, do not make video-frame visual claims.

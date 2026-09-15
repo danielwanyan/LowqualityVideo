@@ -32,7 +32,7 @@ def _compact(text, limit=1200):
 def _rules_by_issue_type(rules_json_body):
     parsed = _parse_json(rules_json_body, {})
     if not isinstance(parsed, dict):
-        return {}, "", []
+        return {}, "", [], []
     rules = parsed.get("rules")
     by_issue = {}
     if isinstance(rules, list):
@@ -42,7 +42,34 @@ def _rules_by_issue_type(rules_json_body):
             issue_type = _to_text(rule.get("issue_type"))
             if issue_type:
                 by_issue[issue_type] = rule
-    return by_issue, _to_text(parsed.get("version")), parsed.get("data_availability_rules") or []
+    return (
+        by_issue,
+        _to_text(parsed.get("version")),
+        parsed.get("data_availability_rules") or [],
+        parsed.get("source_rule_adaptations") or [],
+    )
+
+
+def _make_source_adaptation_section(adaptations):
+    lines = ["CROSS-PROJECT RULE ADAPTATIONS"]
+    if not isinstance(adaptations, list) or not adaptations:
+        lines.append("- none")
+        return "\n".join(lines)
+
+    for item in adaptations:
+        if not isinstance(item, dict):
+            continue
+        display = _to_text(item.get("display")) or _to_text(item.get("source_project"))
+        mapped = item.get("mapped_issue_types")
+        imported_rules = item.get("imported_rules")
+        if display:
+            lines.append(f"- {display}")
+        if isinstance(mapped, list) and mapped:
+            lines.append(f"  mapped_issue_types: {', '.join(_to_text(value) for value in mapped if _to_text(value))}")
+        if isinstance(imported_rules, list) and imported_rules:
+            for rule in imported_rules[:8]:
+                lines.append(f"  - {rule}")
+    return "\n".join(lines)
 
 
 def _get_nested_bool(payload, section, key):
@@ -77,7 +104,7 @@ def _make_rule_section(rule):
         values = rule.get(key)
         if isinstance(values, list) and values:
             lines.append(f"{label}:")
-            for item in values[:8]:
+            for item in values[:12]:
                 lines.append(f"- {item}")
     return "\n".join(lines)
 
@@ -100,7 +127,7 @@ async def main(args: Args) -> Output:
     aigc_attribute_panel = _to_text(params.get("aigc_attribute_panel"))
     product_identity_panel = _to_text(params.get("product_identity_panel"))
 
-    rules_by_issue, rule_version, data_availability_rules = _rules_by_issue_type(rules_json_body)
+    rules_by_issue, rule_version, data_availability_rules, source_rule_adaptations = _rules_by_issue_type(rules_json_body)
     if not rules_by_issue:
         fallback = "\n".join([
             "PROJECT: LowqualityVideo",
@@ -198,6 +225,7 @@ async def main(args: Args) -> Output:
         "IS_AIGC RULE: is_AIGC is an attribute only. is_AIGC=true only boosts unrealistic_or_continuity_error and never creates a hit by itself.",
         "PIRACY THRESHOLD: pirated_content and potential_pirated require strong internal evidence from video frames, ASR, or OCR. Use no review/commentary inputs and no external Pearl fields.",
     ]
+    sections.append(_make_source_adaptation_section(source_rule_adaptations))
     if data_availability_rules:
         sections.append("DATA AVAILABILITY RULES:")
         for rule in data_availability_rules:

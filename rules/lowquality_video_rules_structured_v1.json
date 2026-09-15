@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-14-v2-no-comment-review-inputs",
+  "version": "2026-09-15-v3-cross-project-rule-integration",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video using video/product evidence fields plus is_AIGC. The workflow covers only the 15 user-confirmed SOP issue types, does not cover the complete SOP, and does not use review or feedback fields.",
   "decision_values": [
@@ -65,6 +65,84 @@
       "country"
     ]
   },
+  "source_rule_adaptations": [
+    {
+      "source_project": "aigc-ipp",
+      "display": "AIGC-IPP -> inconsistent_product_promotion",
+      "mapped_issue_types": [
+        "inconsistent_product_promotion",
+        "no_physical_product_display"
+      ],
+      "imported_rules": [
+        "Only make a product mismatch judgment after confirming the video is promoting an e-commerce product.",
+        "Compare against all provided product images; a match with any provided product image can clear simple visual consistency.",
+        "Check packaging and content separately; packaging match alone does not clear content mismatch and content match alone does not clear packaging mismatch.",
+        "product_category is only exemption context, not visual proof of product consistency.",
+        "Do not treat OCR text, brand text, lighting, photo render effects, or pure color differences as a mismatch by themselves.",
+        "If the promoted product is not physically shown, do not force a product mismatch hit from ASR/OCR alone."
+      ]
+    },
+    {
+      "source_project": "aigc-misleading",
+      "display": "AIGC-Misleading -> misleading_functionality_and_effect / unrealistic_or_continuity_error",
+      "mapped_issue_types": [
+        "misleading_functionality_and_effect",
+        "unrealistic_or_continuity_error"
+      ],
+      "imported_rules": [
+        "Check whether a shown function exists separately from whether the shown effect strength is realistic.",
+        "Supported spray, mist, light, cooling, or motion functions do not exempt impossible emission effects or over-strong performance displays.",
+        "For cooking and kitchen products, normal jump cuts, browning, steam, and finished-food beauty shots are not enough; require impossible processing, false time/effect claims, or input/output inconsistency.",
+        "Detect pattern identity drift on clothing, packaging, fabric, stickers, printed surfaces, and logos.",
+        "Detect hardware layout drift on phones, tablets, appliances, watches, cameras, controllers, panels, ports, buttons, and camera modules.",
+        "Detect food or content identity drift when the input item and output item in the same process become a different shape, cut, category, or batch without visible replacement.",
+        "Detect toy-scale or model-product effects when small products show full-size environmental interactions such as huge dust, water, light, smoke, or impact effects.",
+        "Detect storage-capacity exaggeration when passive containers appear to absorb more items than their physical capacity supports."
+      ]
+    },
+    {
+      "source_project": "dnd",
+      "display": "DND -> description_not_detailed",
+      "mapped_issue_types": [
+        "description_not_detailed"
+      ],
+      "imported_rules": [
+        "Use 5 detail dimensions: function or efficacy, features or advantages, usage or scenario, parameters or specifications, and materials or ingredients.",
+        "Subjective praise and hard-sell text do not count as product detail.",
+        "One sentence should not be double-counted across multiple dimensions.",
+        "If ASR appears polluted or unrelated to the displayed product, prefer manual_review instead of a confident hit."
+      ]
+    },
+    {
+      "source_project": "onlymarketpitch",
+      "display": "Only-Market-Pitch -> only_marketing_sales_pitches",
+      "mapped_issue_types": [
+        "only_marketing_sales_pitches"
+      ],
+      "imported_rules": [
+        "Hit only when ASR/OCR is hard-sell marketing such as price, discount, sale, hurry, limited stock, add to cart, checkout, free shipping, bundle, or gift.",
+        "Do not hit when ASR/OCR contains any real product function, specification, material, ingredient, usage method, compatibility, capacity, or scenario information.",
+        "Distinguish only_marketing_sales_pitches from description_not_detailed; weak product detail can avoid this label even if it may still be low detail."
+      ]
+    },
+    {
+      "source_project": "video-product-lowquality",
+      "display": "video-product-lowquality -> workflow and evidence safeguards",
+      "mapped_issue_types": [
+        "inconsistent_product_promotion",
+        "misleading_functionality_and_effect",
+        "unrealistic_or_continuity_error",
+        "only_marketing_sales_pitches"
+      ],
+      "imported_rules": [
+        "Keep the GitHub rules plus Rules Brain plus Evidence Gate plus single LLM plus Output Validator architecture.",
+        "Use an evidence gate before the LLM so missing frames, missing product images, or missing ASR/OCR create forbidden claims and decision floors.",
+        "For frame_list, adjacent frames are neighboring sampled frames, not one-second intervals.",
+        "For transparent storage boxes, drawers, organizers, and containers, same-compartment continuity and object materialization outrank weak layer-count guesses.",
+        "Use product-local image indices for product reference comparisons and keep product images before video frames in the visual input manifest."
+      ]
+    }
+  ],
   "rules": [
     {
       "id": "LV01",
@@ -136,17 +214,23 @@
       "triggers": [
         "Video contains verbal or written e-commerce product promotion.",
         "The displayed product differs materially from the bound product shown in product reference images.",
-        "Mismatch concerns product type, shape, structure, packaging, material, style, size, variant, or core design."
+        "Mismatch concerns product type, shape, structure, packaging, material, style, size, variant, or core design.",
+        "Packaging and content differ separately: packaging matches but contents differ, contents match but packaging differs, or both differ.",
+        "Video shows a product quantity, package format, food texture, material, or size that conflicts with product reference images."
       ],
       "required_evidence": [
         "video frame or ASR/OCR evidence of the promoted product",
-        "product reference images for comparison"
+        "product reference images for comparison",
+        "compare against all provided product images before deciding mismatch",
+        "explain whether packaging and content separately match or differ"
       ],
       "false_positive_boundaries": [
-        "Do not hit when displayed product matches the bound product main image.",
+        "Do not hit when displayed product matches any provided product image.",
         "Do not hit when the displayed item can reasonably be a SKU variant of the bound product.",
         "For blind boxes, accessories, jade, and collectible cards, same L3 category can exempt the mismatch.",
         "For apparel tops and bottoms, pattern or color differences within the same SPU/SKU family can be exempted.",
+        "product_category is only exemption context and must not prove visual consistency.",
+        "Do not hit from OCR text, brand text, lighting, render effects, small accessories, decoration, or pure color differences alone.",
         "If product images are missing, do not make a strong hit; use manual_review if text or frames are concerning."
       ]
     },
@@ -217,14 +301,23 @@
       "triggers": [
         "Video magnifies product effects or functions using exaggerated filming or unreliable information.",
         "Product result appears physically, medically, biologically, or practically unreliable.",
-        "Video claims rapid or guaranteed outcomes for health, beauty, weight, growth, repair, cleaning, durability, capacity, compatibility, or safety without credible support."
+        "Video claims rapid or guaranteed outcomes for health, beauty, weight, growth, repair, cleaning, durability, capacity, compatibility, or safety without credible support.",
+        "Video shows supported functions such as mist, spray, cooling, light, motion, cleaning, cooking, blending, or storage with an effect strength or physical form beyond same-category realistic capability.",
+        "Passive containers, storage bags, moving bags, organizers, or boxes are shown holding or organizing a quantity of items that exceeds reasonable capacity or implies impossible efficiency.",
+        "Food or packaged goods are shown with quantity, weight, texture, filling, pull, serving size, or package count that creates a materially larger or richer expectation than product reference evidence supports.",
+        "ASR/OCR makes absolute, medical, expert, ranking, certification, sales-number, or performance claims that are clearly unsupported by current video or product evidence."
       ],
       "required_evidence": [
         "ASR/OCR claim or visual demonstration showing the exaggerated effect",
-        "connection to the promoted product expectation"
+        "connection to the promoted product expectation",
+        "when comparing quantity, capacity, or size, cite the product reference image or visible product reference evidence used as the baseline"
       ],
       "false_positive_boundaries": [
         "Do not hit for normal positive marketing praise without concrete misleading effect or function.",
+        "Do not hit kitchen or cooking videos for normal jump cuts, steam, browning, finished-food beauty shots, or omitted waiting time unless there is an impossible process, false time/effect claim, or input/output inconsistency.",
+        "Do not hit mist, spray, light, cooling, or motion products merely because the function exists; judge whether the shown effect strength, source location, or shape is realistic.",
+        "Do not hit set or bundle quantity claims merely because one product reference image shows one item; require clear conflict with listing/package evidence.",
+        "Do not treat OCR numbers, platform UI counts, screen garbage, or ambiguous digits as false claims unless the context clearly binds them to product sales, rating, efficacy, certification, ranking, weight, or quantity.",
         "Do not hit just because is_AIGC is true; non-AIGC content can also be misleading and AIGC content can be acceptable."
       ]
     },
@@ -272,14 +365,20 @@
       "triggers": [
         "Video contains product promotion but lacks enough product explanation.",
         "For most products, the product is not clearly and fully displayed and the explanation lacks meaningful information.",
-        "For electric products, digital products, skincare products, or health supplements, the product is not both displayed and explained."
+        "For electric products, digital products, skincare products, or health supplements, the product is not both displayed and explained.",
+        "ASR/OCR does not cover enough of the 5 detail dimensions: function or efficacy, features or advantages, usage or scenario, parameters or specifications, and materials or ingredients."
       ],
       "required_evidence": [
         "video frame evidence of product display quality",
-        "ASR/OCR evidence showing missing or weak product explanation"
+        "ASR/OCR evidence showing missing or weak product explanation",
+        "identify which of the 5 detail dimensions are present and which are missing"
       ],
       "false_positive_boundaries": [
         "Do not hit for most products when they are shown clearly and fully, even with limited narration.",
+        "Do not count subjective praise such as amazing, I love this, good, beautiful, or high quality as a concrete detail dimension by itself.",
+        "Do not count hard-sell or price text as product detail.",
+        "Do not double-count one sentence across multiple detail dimensions.",
+        "If ASR appears polluted or unrelated to the product shown in frames, prefer manual_review instead of a confident hit.",
         "Do not hit for makeup get-ready-with-me videos, card unboxing/break videos, or party board game intro videos when the SOP exemption conditions are met.",
         "Do not confuse this with only_marketing_sales_pitches; this label covers insufficient product detail beyond pure hard-sell scripts."
       ]
@@ -292,7 +391,8 @@
       "triggers": [
         "ASR/OCR only emphasizes price, discount, gifts, promotion ending, stock pressure, urgency, checkout, cart, or purchase guidance.",
         "Text or speech does not explain product function, specification, usage effect, usage method, material, compatibility, or scenario.",
-        "This rule applies to all product categories."
+        "This rule applies to all product categories.",
+        "Hard-sell signals include price, only, just, special price, discount, sale, hurry, limited stock, last chance, do not miss, buy now, order now, add to cart, checkout, free shipping, bundle, and gift."
       ],
       "required_evidence": [
         "ASR/OCR evidence showing hard-sell content",
@@ -300,6 +400,8 @@
       ],
       "false_positive_boundaries": [
         "Do not hit when there is weak but real product function, usage, specification, material, or scenario information.",
+        "Substantive information includes function, efficacy, feature, advantage, usage method, usage scenario, parameter, specification, material, ingredient, compatibility, capacity, or product-fit information.",
+        "Do not collapse description_not_detailed into this label; weak detail can avoid only_marketing_sales_pitches while still being insufficiently detailed.",
         "Do not hit from missing ASR/OCR alone."
       ]
     },
@@ -351,17 +453,26 @@
         "Video frames show product identity drift, structure drift, pattern drift, content identity drift, impossible scale or pose change, or object materialization.",
         "Garbled or morphing product text/logo appears in a way that affects product understanding.",
         "AIGC video shows fake speech, fake interview, impossible before-after effects, unrealistic product size/style/effect, or AI avatar explaining the product without product appearance.",
-        "For transparent storage boxes, drawers, organizers, or containers, the same compartment contents change between adjacent sampled frames without a visible placement action."
+        "For transparent storage boxes, drawers, organizers, or containers, the same compartment contents change between adjacent sampled frames without a visible placement action.",
+        "Same product surface pattern, logo, packaging, textile print, sticker, or label changes identity across adjacent or near-adjacent frames without a product switch.",
+        "Same electronic device shows impossible hardware layout drift, such as camera modules, ports, buttons, panels, sensors, screens, or back plates moving, duplicating, or appearing on impossible sides.",
+        "Food, cooking, blending, processing, cleaning, or storage workflow changes the input item into a different output shape, cut, category, batch, or content identity without visible replacement.",
+        "Small toy, model, or miniature product creates full-size physical effects such as huge dust, water splash, smoke, beam light, fire, impact, or terrain interaction.",
+        "Mist, spray, smoke, fire, light, cooling, or liquid emission appears from the wrong place, passes through surfaces, detaches from the product, or has a VFX-like shape inconsistent with product structure."
       ],
       "required_evidence": [
         "specific video frame evidence",
+        "compare adjacent or near-adjacent sampled frames when claiming drift or continuity break",
         "when is_AIGC is true, still require concrete frame evidence; the attribute only raises attention"
       ],
       "false_positive_boundaries": [
         "Do not hit because is_AIGC is true by itself.",
         "Do not over-focus on minor artifacts that do not affect product understanding.",
         "Do not claim exact elapsed time between frames without timestamps.",
-        "Adjacent frames mean neighboring sampled frames in frame_list, not one second apart."
+        "Adjacent frames mean neighboring sampled frames in frame_list, not one second apart.",
+        "Do not hit pattern, hardware, or content drift when the video clearly switches to a different SKU, different product, different recipe segment, different batch, sample/mini item, accessory, or supported product variant.",
+        "Do not hit normal cooking color change, browning, steaming, softening, shrinkage, folding, perspective, crop, occlusion, motion blur, low resolution, or ordinary lens distortion by itself.",
+        "For transparent storage boxes and organizers, same-compartment continuity and object materialization outrank weak layer-count guesses."
       ]
     }
   ],

@@ -79,11 +79,30 @@ class RulesBrainTest(unittest.TestCase):
     def test_falls_back_to_text_rules_when_structured_json_missing(self):
         result = self.run_node({
             "rules_json_body": "",
-            "rules_text_body": "LowqualityVideo Rules v2\nDo not use external Pearl fields.",
+            "rules_text_body": "LowqualityVideo Rules v3\nDo not use external Pearl fields.",
         })
 
-        self.assertIn("LowqualityVideo Rules v2", result["rules_context"])
+        self.assertIn("LowqualityVideo Rules v3", result["rules_context"])
         self.assertIn("fallback_text_rules", result["matched_rule_families"])
+
+    def test_rule_context_includes_cross_project_adaptations(self):
+        result = self.run_node({
+            "video_signal_panel": json.dumps({
+                "candidate_attention": {
+                    "misleading_functionality_and_effect": True,
+                    "only_marketing_sales_pitches": True,
+                }
+            }),
+            "product_identity_panel": json.dumps({"product_image_count": 2}),
+        })
+
+        self.assertIn("CROSS-PROJECT RULE ADAPTATIONS", result["rules_context"])
+        self.assertIn("AIGC-IPP -> inconsistent_product_promotion", result["rules_context"])
+        self.assertIn("DND -> description_not_detailed", result["rules_context"])
+        self.assertIn("Only-Market-Pitch -> only_marketing_sales_pitches", result["rules_context"])
+        self.assertIn("AIGC-Misleading -> misleading_functionality_and_effect / unrealistic_or_continuity_error", result["rules_context"])
+        self.assertIn("food or content identity drift", result["rules_context"])
+        self.assertIn("storage-capacity exaggeration", result["rules_context"])
 
     def test_output_keys_match_aicolate_output_panel(self):
         result = self.run_node({})
