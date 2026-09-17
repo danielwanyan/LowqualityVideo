@@ -26,15 +26,6 @@ def _to_text(value):
     return str(value).strip()
 
 
-def _normalize_is_aigc(value):
-    text = _to_text(value).lower()
-    if text in {"true", "1", "yes", "y", "是", "yes/aigc", "aigc"}:
-        return "true"
-    if text in {"false", "0", "no", "n", "否", "non-aigc", "non_aigc", "not aigc"}:
-        return "false"
-    return "unknown"
-
-
 def _clean_image_url(value):
     url = IMAGE_MARKER_RE.sub(" ", _to_text(value)).strip()
     url = url.strip("\"'[],; ")
@@ -193,18 +184,15 @@ async def main(args: Args) -> Output:
     params = args.params
 
     video_id = _to_text(params.get("video_id"))
-    url = _to_text(params.get("url"))
     asr = _to_text(params.get("ASR"))
     ocr = _to_text(params.get("OCR"))
     frame_list = _to_text(params.get("frame_list"))
-    is_aigc = _normalize_is_aigc(params.get("is_AIGC"))
 
     frame_urls = _extract_image_urls(frame_list)
     signals = _build_text_signals(asr, ocr)
 
     manifest_lines = [
         f"VIDEO_ID: {video_id}",
-        f"VIDEO_URL_PRESENT: {'yes' if url else 'no'}",
         f"VIDEO_FRAME_COUNT: {len(frame_urls)}",
         f"SAMPLING_METHOD: {FRAME_SAMPLING_METHOD}",
         f"SAMPLING_NOTE: {FRAME_SAMPLING_NOTE}",
@@ -223,8 +211,6 @@ async def main(args: Args) -> Output:
         warnings.append("frame_list is empty; do not make visual claims about video frames")
     if not asr and not ocr:
         warnings.append("ASR and OCR are both empty")
-    if is_aigc == "unknown":
-        warnings.append("is_AIGC is empty or not recognized; treat as unknown attribute")
 
     data_quality = {
         "video_frames_available": len(frame_urls) > 0,
@@ -235,14 +221,13 @@ async def main(args: Args) -> Output:
         "frame_interval_seconds_known": False,
         "asr_available": bool(asr),
         "ocr_available": bool(ocr),
-        "video_url_available": bool(url),
-        "is_AIGC": is_aigc,
         "warnings": warnings,
     }
 
     video_text_panel = {
         "asr_text": _preview(asr),
         "ocr_text": _preview(ocr),
+        "signals": signals,
         "notes": [
             "ASR and OCR are video content evidence, not product metadata.",
             FRAME_SAMPLING_NOTE,
@@ -250,44 +235,33 @@ async def main(args: Args) -> Output:
         ],
     }
 
-    aigc_attribute_panel = {
-        "is_AIGC": is_aigc,
-        "usage": [
-            "is_AIGC is an attribute, not a violation.",
-            "is_AIGC only increases attention for unrealistic_or_continuity_error.",
-            "is_AIGC must not increase attention for misleading_functionality_and_effect, no_physical_product_display, still_frame, or pirated labels.",
-            "A hit still requires concrete frame, ASR, OCR, or product image evidence.",
-        ],
-    }
-
     video_signal_panel = {
         "signals": signals,
         "candidate_attention": {
-            "only_marketing_sales_pitches": signals["has_hard_sell_terms"]
+            "pure_marketing_pitch": signals["has_hard_sell_terms"]
             and not signals["has_substantive_product_terms"],
-            "out_of_app_transactions": signals["has_external_transaction_terms"],
-            "misleading_functionality_and_effect": signals["has_misleading_terms"],
-            "potential_pirated_or_pirated": signals["has_pirated_terms"],
-            "non_native": signals["has_cjk_text"],
-            "disgusting_and_terrifying": signals["has_discomfort_terms"],
-            "pornography_perception": signals["has_sexual_terms"],
-            "dangerous_behavior": signals["has_dangerous_terms"],
-            "unrealistic_or_continuity_error": is_aigc == "true"
-            or signals["has_misleading_terms"]
+            "out_of_app_transaction": signals["has_external_transaction_terms"],
+            "misleading_functionality_or_effect": signals["has_misleading_terms"],
+            "suspected_pirated_or_reused_content": signals["has_pirated_terms"],
+            "disgusting_or_terrifying_visual": signals["has_discomfort_terms"],
+            "sexual_or_vulgar_hook": signals["has_sexual_terms"],
+            "unrealistic_or_continuity_error": signals["has_misleading_terms"]
             or signals["has_pirated_terms"],
         },
         "notes": [
             "candidate_attention is not a final decision.",
-            "Use video frames, ASR/OCR, and product reference evidence as the analysis scope.",
+            "Use frame_list, ASR, OCR, images, and country as the analysis scope.",
         ],
     }
 
+    data_quality_payload = json.dumps(data_quality, ensure_ascii=False)
     ret = {
         "video_frame_urls": frame_urls,
         "video_frame_manifest": "\n".join(manifest_lines),
         "video_text_panel": json.dumps(video_text_panel, ensure_ascii=False),
-        "aigc_attribute_panel": json.dumps(aigc_attribute_panel, ensure_ascii=False),
+        "video_signal_flags_json": json.dumps(signals, ensure_ascii=False),
         "video_signal_panel": json.dumps(video_signal_panel, ensure_ascii=False),
-        "video_data_quality": json.dumps(data_quality, ensure_ascii=False),
+        "video_data_quality_json": data_quality_payload,
+        "video_data_quality": data_quality_payload,
     }
     return ret

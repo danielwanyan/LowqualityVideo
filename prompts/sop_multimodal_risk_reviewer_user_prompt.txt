@@ -1,4 +1,4 @@
-Review this one e-commerce short video and its bound product evidence.
+Review this one e-commerce video for video low-quality issues.
 
 Visual input:
 {{gated_all_image_urls}}
@@ -6,116 +6,124 @@ Visual input:
 Image manifest:
 {{gated_all_image_manifest}}
 
-Risk attention packet:
-{{gated_risk_attention_packet}}
+Final reviewer context:
+{{final_reviewer_context}}
 
 Evidence gate panel:
 {{evidence_gate_panel}}
 
-Allowed issue types from evidence gate:
+Allowed issue types:
 {{allowed_issue_types}}
 
-Forbidden claims from evidence gate:
+Forbidden claims:
 {{forbidden_claims}}
 
-Recommended decision floor from evidence gate:
-{{recommended_decision_floor}}
-
-Source identifiers:
+Source identifier:
 video_id: {{video_id}}
-product_id: {{product_id}}
-country: {{country}}
-seller_id_str: {{seller_id_str}}
-is_AIGC: {{is_AIGC}}
 
-Video text:
+Judgment evidence:
 ASR: {{ASR}}
 OCR: {{OCR}}
+country: {{country}}
+
+Do not use display-only row fields as judgment evidence even if they exist in the source row.
 
 Required review process:
-1. Check data availability first. If video frames or product images are missing, do not invent visual evidence.
-2. If gated_all_image_urls is non-empty, directly inspect the images in the visual input array.
-3. Follow the image manifest. Product reference images appear first, followed by sampled video frames.
-4. Treat adjacent video frames as neighboring sampled frames, not frames one second apart.
-5. Review only the 15 in-scope issue types listed below. Do not cover the complete SOP.
-6. Use is_AIGC only as an attribute and as an attention boost for unrealistic_or_continuity_error.
-7. Do not use is_AIGC to hit misleading_functionality_and_effect, no_physical_product_display, still_frame, potential_pirated, pirated_content, pornography_perception, or any other issue by itself.
-8. Use only video frames, ASR, OCR, and product evidence for analysis.
-9. For pirated_content and potential_pirated, require strong internal evidence from frames or ASR/OCR.
-10. Obey forbidden_claims from Evidence Gate. If a claim is forbidden, do not make it.
-11. Return raw JSON only.
+1. Check evidence availability first.
+2. Directly inspect the image array when present. Product images appear first, followed by sampled video frames. Use the image manifest to identify each image role.
+3. Use product images only as auxiliary evidence for IPP, IP, and MFE-style video judgment.
+4. Use frame_list, ASR, and OCR as primary video evidence.
+5. Apply the boundary attention and forbidden claims before deciding.
+6. Choose exactly one overall_decision: problematic or clean.
+7. If evidence is uncertain or weak, choose clean.
+8. Fill human_review_labels using the exact labels below.
+9. Return raw JSON only.
 
 Allowed overall_decision values:
 problematic
-manual_review
 clean
 
 Allowed primary_issue_type values:
-potential_pirated
-irrelevant_promotion
-pirated_content
-inconsistent_product_promotion
-non_native
-still_frame
-out_of_app_transactions
-misleading_functionality_and_effect
-dangerous_behavior
-disgusting_and_terrifying
-description_not_detailed
-only_marketing_sales_pitches
-pornography_perception
+video_product_mismatch
+misleading_functionality_or_effect
+suspected_pirated_or_reused_content
+pure_marketing_pitch
 no_physical_product_display
+irrelevant_product_promotion
 unrealistic_or_continuity_error
+sexual_or_vulgar_hook
+disgusting_or_terrifying_visual
+pirated_content
+description_not_detailed
+out_of_app_transaction
+still_frame
 none
 
+Allowed tagsContent values:
+挂车商品与讲解商品不一致
+功能效果虚假夸大
+疑似盗版 / 疑似盗剪
+仅营销叫卖
+无实物展示（围绕商品讲解）
+内容与商品无关推广
+穿帮 / 不符现实
+擦边低俗
+恶心恐怖
+盗版内容
+内容介绍不详细（低质）
+站外引流交易
+静止帧
+
+Allowed tagsAttribute values:
+视频不可见
+
+Mapping:
+video_product_mismatch -> 挂车商品与讲解商品不一致
+misleading_functionality_or_effect -> 功能效果虚假夸大
+suspected_pirated_or_reused_content -> 疑似盗版 / 疑似盗剪
+pure_marketing_pitch -> 仅营销叫卖
+no_physical_product_display -> 无实物展示（围绕商品讲解）
+irrelevant_product_promotion -> 内容与商品无关推广
+unrealistic_or_continuity_error -> 穿帮 / 不符现实
+sexual_or_vulgar_hook -> 擦边低俗
+disgusting_or_terrifying_visual -> 恶心恐怖
+pirated_content -> 盗版内容
+description_not_detailed -> 内容介绍不详细（低质）
+out_of_app_transaction -> 站外引流交易
+still_frame -> 静止帧
+none -> no tagsContent
+
 Output JSON schema:
-```json
 {
   "video_id": "",
-  "overall_decision": "problematic|manual_review|clean",
-  "primary_issue_type": "potential_pirated|irrelevant_promotion|pirated_content|inconsistent_product_promotion|non_native|still_frame|out_of_app_transactions|misleading_functionality_and_effect|dangerous_behavior|disgusting_and_terrifying|description_not_detailed|only_marketing_sales_pitches|pornography_perception|no_physical_product_display|unrealistic_or_continuity_error|none",
+  "overall_decision": "problematic|clean",
+  "primary_issue_type": "",
   "detected_issue_types": [],
-  "is_AIGC": "true|false|unknown",
-  "issue_results": {
-    "potential_pirated": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "irrelevant_promotion": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "pirated_content": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "inconsistent_product_promotion": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "non_native": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "still_frame": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "out_of_app_transactions": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "misleading_functionality_and_effect": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "dangerous_behavior": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "disgusting_and_terrifying": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "description_not_detailed": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "only_marketing_sales_pitches": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "pornography_perception": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "no_physical_product_display": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"},
-    "unrealistic_or_continuity_error": {"decision": "hit|no_hit|uncertain", "evidence_cn": "", "confidence": "high|medium|low"}
+  "human_review_labels": {
+    "ratings": [],
+    "tagsContent": [],
+    "tagsAttribute": []
   },
+  "video_evidence_summary_cn": "",
+  "product_aux_summary_cn": "",
+  "boundary_reason_cn": "",
+  "final_reason_cn": "",
   "data_quality": {
     "video_frames_available": true,
-    "product_images_available": true,
     "asr_available": true,
     "ocr_available": true,
-    "missing_or_weak_inputs": []
-  },
-  "manual_review_reasons": [],
-  "summary_cn": "",
-  "final_reason_cn": ""
+    "product_images_available": true,
+    "country_available": true
+  }
 }
-```
 
-Additional output rules:
+Output rules:
 - Use literal booleans and arrays, not strings like "true", "false", or "[]".
-- detected_issue_types is multi-select. Include every issue with decision=hit.
-- primary_issue_type must be one of detected_issue_types when overall_decision is problematic.
-- primary_issue_type must be none when overall_decision is clean.
-- If there is no strong hit but there is unresolved risk, use overall_decision=manual_review.
-- For manual_review, primary_issue_type may be none unless one uncertain issue is clearly dominant.
-- issue_results must include all 15 issue keys exactly.
-- Do not output legacy issue types from other projects.
-- All summaries, reasons, and evidence fields must be in Chinese. Direct source quotes may remain in source language.
-- Use only video frames, ASR, OCR, and product evidence for analysis.
-- If evidence is missing, say what is missing rather than inventing it.
-- Return raw JSON only. No markdown. No explanation outside the JSON.
+- human_review_labels.ratings must be ["video"] when tagsContent is non-empty.
+- human_review_labels.ratings must be ["ok"] when tagsContent is empty.
+- Do not output product-side labels.
+- Do not output a third decision value.
+- Do not output old issue types such as old misleading functionality labels, old inconsistent product promotion labels, old potential piracy labels, or old marketing pitch labels.
+- If video frames are missing or unusable, include 视频不可见 in tagsAttribute and do not claim video-frame evidence.
+- If no issue is supported by concrete evidence, set overall_decision=clean, primary_issue_type=none, detected_issue_types=[], ratings=["ok"], tagsContent=[].
+- All summaries, reasons, and evidence fields must be in Chinese. All conclusions must also be in Chinese. Only direct source quotes may remain in source language or English.

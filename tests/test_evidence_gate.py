@@ -16,20 +16,18 @@ class EvidenceGateTest(unittest.TestCase):
 
     def test_allows_visual_and_product_claims_when_evidence_exists(self):
         result = self.run_node({
-            "all_image_urls": ["https://cdn.example.com/p.jpg", "https://cdn.example.com/f.jpg"],
-            "all_image_manifest": "IMAGE_INDEX 000 | PRODUCT_IMAGE 001\nIMAGE_INDEX 001 | VIDEO_FRAME 001",
             "product_image_urls": ["https://cdn.example.com/p.jpg"],
             "video_frame_urls": ["https://cdn.example.com/f.jpg"],
-            "video_data_quality": json.dumps({"video_frames_available": True, "asr_available": True, "ocr_available": False}),
-            "product_data_quality": json.dumps({"product_images_available": True}),
-            "risk_attention_packet": "PROJECT: LowqualityVideo",
-            "missing_data_panel": "none",
+            "video_frame_manifest": "VIDEO_FRAME 001 | f.jpg",
+            "product_image_manifest": "PRODUCT_IMAGE 001 | p.jpg",
+            "video_data_quality_json": json.dumps({"video_frames_available": True, "asr_available": True, "ocr_available": False}),
+            "product_aux_data_quality_json": json.dumps({"product_images_available": True, "country_available": True}),
+            "boundary_attention_packet": "PROJECT: LowqualityVideo",
+            "allowed_issue_types": "video_product_mismatch, none",
         })
 
-        status = json.loads(result["evidence_status_json"])
-        self.assertIn("inconsistent_product_promotion", status["allowed_issue_types"])
-        self.assertIn("potential_pirated", status["allowed_issue_types"])
-        self.assertEqual(status["recommended_decision_floor"], "no_floor")
+        self.assertIn("Allowed final decisions: problematic, clean", result["final_reviewer_context"])
+        self.assertIn("PROJECT: LowqualityVideo", result["final_reviewer_context"])
         self.assertEqual(result["gated_all_image_urls"], [
             "https://cdn.example.com/p.jpg",
             "https://cdn.example.com/f.jpg",
@@ -37,31 +35,25 @@ class EvidenceGateTest(unittest.TestCase):
 
     def test_blocks_visual_claims_when_frames_missing(self):
         result = self.run_node({
-            "all_image_urls": ["https://cdn.example.com/p.jpg"],
             "product_image_urls": ["https://cdn.example.com/p.jpg"],
             "video_frame_urls": [],
-            "video_data_quality": json.dumps({"video_frames_available": False, "asr_available": True, "ocr_available": True}),
-            "product_data_quality": json.dumps({"product_images_available": True}),
+            "video_data_quality_json": json.dumps({"video_frames_available": False, "asr_available": True, "ocr_available": True}),
+            "product_aux_data_quality_json": json.dumps({"product_images_available": True, "country_available": True}),
         })
 
-        status = json.loads(result["evidence_status_json"])
-        self.assertNotIn("still_frame", status["allowed_issue_types"])
-        self.assertNotIn("pirated_content", status["allowed_issue_types"])
-        self.assertNotIn("unrealistic_or_continuity_error", status["allowed_issue_types"])
-        self.assertIn("Do not make video-frame visual claims", result["forbidden_claims"])
+        self.assertIn("不要描述视频画面证据", result["forbidden_claims"])
+        self.assertIn("视频不可见", result["evidence_gate_panel"])
 
-    def test_all_core_evidence_missing_sets_manual_review_floor(self):
+    def test_all_core_evidence_missing_defaults_to_clean_guidance(self):
         result = self.run_node({
             "product_image_urls": [],
             "video_frame_urls": [],
-            "video_data_quality": json.dumps({"video_frames_available": False, "asr_available": False, "ocr_available": False}),
-            "product_data_quality": json.dumps({"product_images_available": False}),
+            "video_data_quality_json": json.dumps({"video_frames_available": False, "asr_available": False, "ocr_available": False}),
+            "product_aux_data_quality_json": json.dumps({"product_images_available": False, "country_available": False}),
         })
 
-        status = json.loads(result["evidence_status_json"])
-        self.assertTrue(status["all_core_evidence_missing"])
-        self.assertEqual(status["recommended_decision_floor"], "manual_review_for_data_insufficiency")
-        self.assertNotIn("comments", result["forbidden_claims"].lower())
+        self.assertIn("choose clean", result["final_reviewer_context"])
+        self.assertNotIn("manual_review", json.dumps(result, ensure_ascii=False))
 
     def test_output_keys_match_aicolate_output_panel(self):
         result = self.run_node({})
@@ -70,11 +62,9 @@ class EvidenceGateTest(unittest.TestCase):
             "gated_all_image_urls",
             "gated_all_image_manifest",
             "evidence_gate_panel",
-            "gated_risk_attention_packet",
-            "evidence_status_json",
-            "allowed_issue_types",
             "forbidden_claims",
-            "recommended_decision_floor",
+            "allowed_issue_types",
+            "final_reviewer_context",
         })
 
 

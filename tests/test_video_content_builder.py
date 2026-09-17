@@ -14,7 +14,7 @@ class VideoContentBuilderTest(unittest.TestCase):
     def run_node(self, params):
         return asyncio.run(video_content_builder.main(DummyArgs(params)))
 
-    def test_parses_newline_frame_list_and_normalizes_is_aigc_true(self):
+    def test_parses_newline_frame_list_and_builds_video_signals(self):
         result = self.run_node({
             "video_id": "7512345678901234567",
             "url": "https://example.com/video",
@@ -30,12 +30,16 @@ class VideoContentBuilderTest(unittest.TestCase):
         ])
         data_quality = json.loads(result["video_data_quality"])
         self.assertTrue(data_quality["video_frames_available"])
-        self.assertEqual(data_quality["is_AIGC"], "true")
+        self.assertNotIn("video_url_available", data_quality)
+        self.assertNotIn("is_AIGC", data_quality)
         signal_panel = json.loads(result["video_signal_panel"])
-        self.assertTrue(signal_panel["signals"]["has_hard_sell_terms"])
-        self.assertTrue(signal_panel["signals"]["has_external_transaction_terms"])
+        signal_flags = json.loads(result["video_signal_flags_json"])
+        self.assertTrue(signal_flags["has_hard_sell_terms"])
+        self.assertTrue(signal_flags["has_external_transaction_terms"])
+        self.assertTrue(signal_panel["candidate_attention"]["pure_marketing_pitch"])
+        self.assertTrue(signal_panel["candidate_attention"]["out_of_app_transaction"])
 
-    def test_parses_json_frame_list_and_normalizes_unknown_is_aigc(self):
+    def test_parses_json_frame_list_without_aigc_attribute(self):
         result = self.run_node({
             "frame_list": "[\"https://cdn.example.com/a.webp\", \"https://cdn.example.com/b.png\"]",
             "ASR": "",
@@ -48,7 +52,7 @@ class VideoContentBuilderTest(unittest.TestCase):
             "https://cdn.example.com/b.png",
         ])
         data_quality = json.loads(result["video_data_quality"])
-        self.assertEqual(data_quality["is_AIGC"], "unknown")
+        self.assertNotIn("is_AIGC", data_quality)
         self.assertIn("ASR and OCR are both empty", data_quality["warnings"])
 
     def test_invalid_empty_frame_list_blocks_visual_availability(self):
@@ -62,7 +66,7 @@ class VideoContentBuilderTest(unittest.TestCase):
         self.assertEqual(result["video_frame_urls"], [])
         data_quality = json.loads(result["video_data_quality"])
         self.assertFalse(data_quality["video_frames_available"])
-        self.assertEqual(data_quality["is_AIGC"], "false")
+        self.assertNotIn("is_AIGC", data_quality)
         self.assertIn("frame_list is empty", data_quality["warnings"][0])
 
 

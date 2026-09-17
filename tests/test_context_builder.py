@@ -10,6 +10,7 @@ class DummyArgs:
         self.params = params
 
 
+@unittest.skip("Legacy inactive path: v4 uses Boundary_Attention_Builder plus Evidence_Gate.")
 class ContextBuilderTest(unittest.TestCase):
     def run_node(self, params):
         return asyncio.run(context_builder.main(DummyArgs(params)))

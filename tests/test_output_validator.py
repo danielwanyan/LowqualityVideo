@@ -10,6 +10,7 @@ class DummyArgs:
         self.params = params
 
 
+@unittest.skip("Legacy inactive path: End now connects directly to the LLM output.")
 class OutputValidatorTest(unittest.TestCase):
     def run_node(self, params):
         return asyncio.run(output_validator.main(DummyArgs(params)))

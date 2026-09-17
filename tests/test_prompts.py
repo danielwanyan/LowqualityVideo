@@ -8,21 +8,19 @@ USER_PROMPT = ROOT / "prompts" / "sop_multimodal_risk_reviewer_user_prompt.txt"
 
 
 ALLOWED_ISSUES = [
-    "potential_pirated",
-    "irrelevant_promotion",
-    "pirated_content",
-    "inconsistent_product_promotion",
-    "non_native",
-    "still_frame",
-    "out_of_app_transactions",
-    "misleading_functionality_and_effect",
-    "dangerous_behavior",
-    "disgusting_and_terrifying",
-    "description_not_detailed",
-    "only_marketing_sales_pitches",
-    "pornography_perception",
+    "video_product_mismatch",
+    "misleading_functionality_or_effect",
+    "suspected_pirated_or_reused_content",
+    "pure_marketing_pitch",
     "no_physical_product_display",
+    "irrelevant_product_promotion",
     "unrealistic_or_continuity_error",
+    "sexual_or_vulgar_hook",
+    "disgusting_or_terrifying_visual",
+    "pirated_content",
+    "description_not_detailed",
+    "out_of_app_transaction",
+    "still_frame",
     "none",
 ]
 
@@ -35,8 +33,8 @@ class PromptFilesTest(unittest.TestCase):
         self.assertNotIn("}}", text)
         self.assertNotIn("```", text)
         self.assertNotIn("# ", text)
-        self.assertIn("System Prompt must stay plain text", text)
-        self.assertIn("is_AIGC only increases attention for unrealistic_or_continuity_error", text)
+        self.assertIn("Allowed judgment evidence is limited to frame_list, ASR, OCR, product images, and country.", text)
+        self.assertIn("Do not output product-side labels.", text)
 
     def test_user_prompt_contains_required_variables(self):
         text = USER_PROMPT.read_text(encoding="utf-8")
@@ -44,16 +42,12 @@ class PromptFilesTest(unittest.TestCase):
         required_variables = [
             "{{gated_all_image_urls}}",
             "{{gated_all_image_manifest}}",
-            "{{gated_risk_attention_packet}}",
+            "{{final_reviewer_context}}",
             "{{evidence_gate_panel}}",
             "{{allowed_issue_types}}",
             "{{forbidden_claims}}",
-            "{{recommended_decision_floor}}",
             "{{video_id}}",
-            "{{product_id}}",
             "{{country}}",
-            "{{seller_id_str}}",
-            "{{is_AIGC}}",
             "{{ASR}}",
             "{{OCR}}",
         ]
@@ -62,6 +56,9 @@ class PromptFilesTest(unittest.TestCase):
 
         self.assertNotIn("{{comments}}", text)
         self.assertNotIn("{{product_review_summary}}", text)
+        self.assertNotIn("{{product_id}}", text)
+        self.assertNotIn("{{seller_id_str}}", text)
+        self.assertNotIn("{{is_AIGC}}", text)
 
     def test_user_prompt_lists_only_allowed_issue_types(self):
         text = USER_PROMPT.read_text(encoding="utf-8")
@@ -69,13 +66,16 @@ class PromptFilesTest(unittest.TestCase):
         for issue in ALLOWED_ISSUES:
             self.assertIn(issue, text)
         forbidden_legacy = [
-            "video_product_mismatch",
             "video_exaggerated_promotion",
             "race_conflict_or_fake_police",
             "staged_mass_production_or_pure_marketing",
             "ipr_or_counterfeit",
             "poor_product_quality",
             "product_side_mismatch_or_exaggeration",
+            "inconsistent_product_promotion",
+            "misleading_functionality_and_effect",
+            "only_marketing_sales_pitches",
+            "potential_pirated",
         ]
         for issue in forbidden_legacy:
             self.assertNotIn(issue, text)
@@ -85,7 +85,7 @@ class PromptFilesTest(unittest.TestCase):
 
         self.assertIn("Return raw JSON only", text)
         self.assertIn("All summaries, reasons, and evidence fields must be in Chinese", text)
-        self.assertIn("Use only video frames, ASR, OCR, and product evidence for analysis", text)
+        self.assertIn("Use frame_list, ASR, and OCR as primary video evidence", text)
 
 
 if __name__ == "__main__":

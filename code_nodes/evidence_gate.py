@@ -1,45 +1,6 @@
 import json
 
 
-VISUAL_ISSUE_TYPES = {
-    "potential_pirated",
-    "pirated_content",
-    "still_frame",
-    "disgusting_and_terrifying",
-    "pornography_perception",
-    "unrealistic_or_continuity_error",
-    "irrelevant_promotion",
-    "dangerous_behavior",
-}
-
-PRODUCT_IMAGE_REQUIRED_TYPES = {
-    "inconsistent_product_promotion",
-}
-
-TEXT_REQUIRED_TYPES = {
-    "only_marketing_sales_pitches",
-    "non_native",
-}
-
-ALL_ISSUE_TYPES = [
-    "potential_pirated",
-    "irrelevant_promotion",
-    "pirated_content",
-    "inconsistent_product_promotion",
-    "non_native",
-    "still_frame",
-    "out_of_app_transactions",
-    "misleading_functionality_and_effect",
-    "dangerous_behavior",
-    "disgusting_and_terrifying",
-    "description_not_detailed",
-    "only_marketing_sales_pitches",
-    "pornography_perception",
-    "no_physical_product_display",
-    "unrealistic_or_continuity_error",
-]
-
-
 def _to_text(value):
     if value is None:
         return ""
@@ -67,124 +28,108 @@ def _to_list(value):
     return []
 
 
-def _parse_json(value, fallback):
+def _json_dict(value):
     text = _to_text(value)
     if not text:
-        return fallback
+        return {}
     try:
         parsed = json.loads(text)
-        return parsed
+        return parsed if isinstance(parsed, dict) else {}
     except Exception:
-        return fallback
+        return {}
 
 
-def _bool_from_json(value, key):
-    parsed = _parse_json(value, {})
-    if isinstance(parsed, dict):
-        return bool(parsed.get(key))
-    return False
+def _bool(data, key):
+    return bool(data.get(key))
+
+
+def _build_all_image_manifest(product_urls, frame_urls):
+    lines = []
+    image_index = 0
+    for product_idx, url in enumerate(product_urls):
+        lines.append(
+            f"IMAGE_INDEX {image_index:03d} | PRODUCT_IMAGE {product_idx + 1:03d} | product_local_index={product_idx} | {url}"
+        )
+        image_index += 1
+    for frame_idx, url in enumerate(frame_urls):
+        lines.append(
+            f"IMAGE_INDEX {image_index:03d} | VIDEO_FRAME {frame_idx + 1:03d} | frame_list_line={frame_idx + 1} | {url}"
+        )
+        image_index += 1
+    return "\n".join(lines) if lines else "NO_IMAGES_AVAILABLE"
 
 
 async def main(args: Args) -> Output:
     params = args.params
 
-    all_image_urls = _to_list(params.get("all_image_urls"))
-    all_image_manifest = _to_text(params.get("all_image_manifest"))
-    risk_attention_packet = _to_text(params.get("risk_attention_packet"))
-    missing_data_panel = _to_text(params.get("missing_data_panel"))
-
     product_image_urls = _to_list(params.get("product_image_urls"))
     video_frame_urls = _to_list(params.get("video_frame_urls"))
-    video_data_quality = _to_text(params.get("video_data_quality"))
-    product_data_quality = _to_text(params.get("product_data_quality"))
+    video_frame_manifest = _to_text(params.get("video_frame_manifest"))
+    product_image_manifest = _to_text(params.get("product_image_manifest"))
+    video_data_quality = _json_dict(params.get("video_data_quality_json") or params.get("video_data_quality"))
+    product_quality = _json_dict(params.get("product_aux_data_quality_json"))
+    boundary_attention_packet = _to_text(params.get("boundary_attention_packet"))
+    allowed_issue_types = _to_text(params.get("allowed_issue_types"))
 
-    video_frames_available = bool(video_frame_urls) and _bool_from_json(
-        video_data_quality, "video_frames_available"
-    )
-    product_images_available = bool(product_image_urls) and _bool_from_json(
-        product_data_quality, "product_images_available"
-    )
-    asr_available = _bool_from_json(video_data_quality, "asr_available")
-    ocr_available = _bool_from_json(video_data_quality, "ocr_available")
+    video_frames_available = bool(video_frame_urls) and _bool(video_data_quality, "video_frames_available")
+    product_images_available = bool(product_image_urls) and _bool(product_quality, "product_images_available")
+    asr_available = _bool(video_data_quality, "asr_available")
+    ocr_available = _bool(video_data_quality, "ocr_available")
     text_available = asr_available or ocr_available
+    country_available = _bool(product_quality, "country_available")
 
-    allowed_issue_types = set(ALL_ISSUE_TYPES)
-    forbidden_claims = []
-
+    forbidden_claims = [
+        "不要输出人工复核类第三结果；只能输出 problematic 或 clean。",
+        "不要输出商品侧标签。",
+        "不要使用展示或追溯字段作为判断证据。",
+    ]
     if not video_frames_available:
-        allowed_issue_types.difference_update(VISUAL_ISSUE_TYPES)
-        forbidden_claims.append(
-            "Do not make video-frame visual claims when frame_list is empty or unusable."
-        )
-        forbidden_claims.append(
-            "Do not hit still_frame, visual pirated/potential pirated, visual pornography, disgusting/terrifying visuals, dangerous visual behavior, or unrealistic/continuity errors without video frames."
-        )
-
+        forbidden_claims.append("不要描述视频画面证据；frame_list 缺失或不可用。")
+        forbidden_claims.append("如果没有其他强文本证据，choose clean，并在 tagsAttribute 中加入 视频不可见。")
     if not product_images_available:
-        allowed_issue_types.difference_update(PRODUCT_IMAGE_REQUIRED_TYPES)
-        forbidden_claims.append(
-            "Do not make strong inconsistent_product_promotion claims when product images are missing or invalid."
-        )
-
+        forbidden_claims.append("不要进行商品图视觉对比；images 缺失或不可用。")
     if not text_available:
-        allowed_issue_types.difference_update(TEXT_REQUIRED_TYPES)
-        forbidden_claims.append(
-            "Do not hit text-only only_marketing_sales_pitches or non_native from missing ASR/OCR."
-        )
+        forbidden_claims.append("不要判断 ASR/OCR 文本类问题，例如仅营销叫卖或站外引流。")
+    if not country_available:
+        forbidden_claims.append("不要推断国家或市场语境。")
 
-    all_core_evidence_missing = (
-        not video_frames_available
-        and not product_images_available
-        and not text_available
-    )
-    if all_core_evidence_missing:
-        recommended_decision_floor = "manual_review_for_data_insufficiency"
-    elif not video_frames_available and text_available:
-        recommended_decision_floor = "manual_review_when_visual_evidence_missing"
-    elif not product_images_available and text_available:
-        recommended_decision_floor = "manual_review_when_product_reference_missing"
-    else:
-        recommended_decision_floor = "no_floor"
-
-    evidence_status = {
-        "video_frames_available": video_frames_available,
-        "product_images_available": product_images_available,
-        "asr_available": asr_available,
-        "ocr_available": ocr_available,
-        "text_available": text_available,
-        "all_core_evidence_missing": all_core_evidence_missing,
-        "allowed_issue_types": sorted(allowed_issue_types),
-        "recommended_decision_floor": recommended_decision_floor,
-    }
-
-    gate_panel = "\n".join([
-        "EVIDENCE GATE",
-        f"video_frames_available: {video_frames_available}",
-        f"product_images_available: {product_images_available}",
-        f"text_available_ASR_or_OCR: {text_available}",
-        "evidence_scope: use only video frames, ASR/OCR, and product reference evidence",
-        f"allowed_issue_types: {', '.join(sorted(allowed_issue_types)) if allowed_issue_types else 'none'}",
-        f"recommended_decision_floor: {recommended_decision_floor}",
-        "FORBIDDEN CLAIMS:",
-        "\n".join(f"- {claim}" for claim in forbidden_claims) if forbidden_claims else "- none",
-        "MISSING DATA PANEL:",
-        missing_data_panel,
-    ])
-
-    gated_risk_attention_packet = "\n\n".join([
-        risk_attention_packet,
-        gate_panel,
-        "The final reviewer must obey the Evidence Gate above. If a claim is forbidden, do not make that claim even if the general rules mention it.",
+    all_image_urls = product_image_urls + video_frame_urls
+    all_image_manifest = _build_all_image_manifest(product_image_urls, video_frame_urls)
+    final_context = "\n\n".join([
+        "VIDEO-FIRST LOWQUALITY REVIEW CONTEXT",
+        "Allowed final decisions: problematic, clean.",
+        "Default rule: if evidence is weak, ambiguous, incomplete, or only suspicious, choose clean and explain the boundary.",
+        "VISUAL INPUT MANIFEST",
+        all_image_manifest,
+        "VIDEO FRAME MANIFEST",
+        video_frame_manifest,
+        "PRODUCT IMAGE MANIFEST",
+        product_image_manifest,
+        "BOUNDARY ATTENTION",
+        boundary_attention_packet,
+        "FORBIDDEN CLAIMS",
+        "\n".join(f"- {claim}" for claim in forbidden_claims),
     ]).strip()
 
-    ret = {
+    gate_panel = "\n".join([
+        "证据可用性检查",
+        f"视频帧可用: {video_frames_available}",
+        f"商品图片可用: {product_images_available}",
+        f"ASR 可用: {asr_available}",
+        f"OCR 可用: {ocr_available}",
+        f"国家字段可用: {country_available}",
+        "允许输出: problematic, clean",
+        "不允许输出第三种裁决",
+        "视频不可见" if not video_frames_available else "视频帧可用于视觉判断",
+        "禁止事项:",
+        "\n".join(f"- {claim}" for claim in forbidden_claims) if forbidden_claims else "- none",
+    ])
+
+    return {
         "gated_all_image_urls": all_image_urls,
         "gated_all_image_manifest": all_image_manifest,
         "evidence_gate_panel": gate_panel,
-        "gated_risk_attention_packet": gated_risk_attention_packet,
-        "evidence_status_json": json.dumps(evidence_status, ensure_ascii=False),
-        "allowed_issue_types": ", ".join(sorted(allowed_issue_types)),
         "forbidden_claims": "\n".join(forbidden_claims),
-        "recommended_decision_floor": recommended_decision_floor,
+        "allowed_issue_types": allowed_issue_types,
+        "final_reviewer_context": final_context,
     }
-    return ret

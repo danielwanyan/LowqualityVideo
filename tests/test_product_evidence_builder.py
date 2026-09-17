@@ -2,7 +2,7 @@ import asyncio
 import json
 import unittest
 
-from code_nodes import product_evidence_builder
+from code_nodes import product_image_aux_builder
 
 
 class DummyArgs:
@@ -12,9 +12,9 @@ class DummyArgs:
 
 class ProductEvidenceBuilderTest(unittest.TestCase):
     def run_node(self, params):
-        return asyncio.run(product_evidence_builder.main(DummyArgs(params)))
+        return asyncio.run(product_image_aux_builder.main(DummyArgs(params)))
 
-    def test_parses_json_image_list_and_preserves_signed_urls(self):
+    def test_parses_json_image_list_and_uses_only_country_context(self):
         image_one = "https://cdn.example.com/path/a.jpeg?x-signature=abc&expires=123"
         image_two = "https://cdn.example.com/path/b.webp?token=def"
         result = self.run_node({
@@ -27,11 +27,11 @@ class ProductEvidenceBuilderTest(unittest.TestCase):
         self.assertEqual(result["product_image_urls"], [image_one, image_two])
         self.assertIn("PRODUCT_IMAGE 001", result["product_image_manifest"])
         self.assertIn("product_local_index=0", result["product_image_manifest"])
-        identity = json.loads(result["product_identity_panel"])
-        self.assertEqual(identity["product_id"], "1729754192409303107")
-        self.assertEqual(identity["seller_id_str"], "7491234567890123456")
-        self.assertEqual(identity["country"], "GB")
-        quality = json.loads(result["product_data_quality"])
+        self.assertIn("COUNTRY: GB", result["product_aux_panel"])
+        joined = json.dumps(result, ensure_ascii=False)
+        self.assertNotIn("1729754192409303107", joined)
+        self.assertNotIn("7491234567890123456", joined)
+        quality = json.loads(result["product_aux_data_quality_json"])
         self.assertTrue(quality["product_images_available"])
         self.assertEqual(quality["product_image_count"], 2)
 
@@ -65,10 +65,9 @@ class ProductEvidenceBuilderTest(unittest.TestCase):
         })
 
         self.assertEqual(result["product_image_urls"], [])
-        quality = json.loads(result["product_data_quality"])
+        quality = json.loads(result["product_aux_data_quality_json"])
         self.assertFalse(quality["product_images_available"])
         self.assertIn("images is empty or invalid", quality["warnings"][0])
-        self.assertIn("product_id is empty", quality["warnings"])
 
     def test_output_keys_match_aicolate_output_panel(self):
         result = self.run_node({
@@ -81,8 +80,8 @@ class ProductEvidenceBuilderTest(unittest.TestCase):
         self.assertEqual(set(result.keys()), {
             "product_image_urls",
             "product_image_manifest",
-            "product_identity_panel",
-            "product_data_quality",
+            "product_aux_panel",
+            "product_aux_data_quality_json",
         })
 
 

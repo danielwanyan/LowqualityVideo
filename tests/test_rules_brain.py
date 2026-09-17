@@ -16,6 +16,7 @@ class DummyArgs:
         self.params = params
 
 
+@unittest.skip("Legacy inactive path: v4 uses Boundary_Attention_Builder.")
 class RulesBrainTest(unittest.TestCase):
     def run_node(self, params):
         base = {

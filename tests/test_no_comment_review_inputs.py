@@ -8,10 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class NoCommentReviewInputsTest(unittest.TestCase):
     def test_runtime_nodes_do_not_read_comment_or_review_inputs(self):
         runtime_files = [
-            ROOT / "code_nodes" / "rules_brain.py",
-            ROOT / "code_nodes" / "context_builder.py",
+            ROOT / "code_nodes" / "video_content_builder.py",
+            ROOT / "code_nodes" / "product_image_aux_builder.py",
+            ROOT / "code_nodes" / "boundary_attention_builder.py",
             ROOT / "code_nodes" / "evidence_gate.py",
-            ROOT / "code_nodes" / "output_validator.py",
             ROOT / "prompts" / "sop_multimodal_risk_reviewer_system_prompt.txt",
             ROOT / "prompts" / "sop_multimodal_risk_reviewer_user_prompt.txt",
             ROOT / "rules" / "lowquality_video_rules_structured_v1.json",
