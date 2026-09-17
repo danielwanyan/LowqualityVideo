@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-17-v4-video-first-binary-boundary-calibration",
+  "version": "2026-09-17-v5-eu599-fp-boundary-calibration",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -59,7 +59,8 @@
       ],
       "false_positive_boundaries": [
         "Do not hit for color-only differences.",
-        "Do not hit for minor style, material, texture, lighting, angle, packaging language, or ordinary brand-text differences.",
+        "Do not hit for minor style, material, texture, lighting, angle, packaging language, ordinary brand-text differences, or functional words printed on a product such as MUSIC SOUND.",
+        "Do not use brand text, OCR text, product-page wording, or package language alone as IPP evidence unless the video is clearly promoting a different physical product.",
         "Do not hit merely because the video shows more units than one product image when the sold set can include those units.",
         "Do not hit from opening scenes, props, outfits, or background objects unless that item is promoted as the sold product."
       ],
@@ -75,12 +76,14 @@
       "label": "功能效果虚假夸大",
       "triggers": [
         "Video frames, ASR, or OCR make a concrete misleading claim about efficacy, speed, durability, medical or health effect, quantity, time, before/after result, safety, or physical capability.",
-        "The video demonstration visually implies a product effect that is physically impossible or materially misleading to consumers.",
-        "Product images may be used only as auxiliary evidence when a visible product promise directly conflicts with the video claim."
+        "The claim must be supported by frame_list, ASR, or OCR from the video itself; product images are auxiliary only.",
+        "The video demonstration visually implies a product effect that is physically impossible or materially misleading to consumers."
       ],
       "false_positive_boundaries": [
         "Do not hit from product images alone.",
+        "Do not use product detail page claims or product image marketing copy by themselves to decide that the video is exaggerated. 商品详情页或商品图文案不能单独触发视频夸大。",
         "Do not hit for ordinary advertising tone, subjective praise, metaphor, fashion or fit claims without concrete false promise, or expected cleaning, shaving, styling, cooking, or demonstration outcomes.",
+        "Do not hit when the claim is a common category claim and the video itself does not make a stronger promise than the visible product evidence.",
         "Minor numerical ambiguity that can reasonably be ordinary speech error is not enough."
       ],
       "required_evidence": [
@@ -99,8 +102,9 @@
       "false_positive_boundaries": [
         "Do not hit for replying to a user comment.",
         "Do not hit for showing another creator briefly and then self-verifying the product.",
-        "Do not hit for proof-style self-comparison.",
-        "Do not hit only because the same creator appears in different scenes."
+        "Do not hit for proof-style self-comparison, product validation, or debunking content.",
+        "Do not hit only because the same creator appears in different scenes.",
+        "Do not hit for generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal."
       ],
       "required_evidence": [
         "specific visual or textual piracy/reuse signal"
@@ -116,7 +120,8 @@
       ],
       "false_positive_boundaries": [
         "Weak but real product information should usually prevent this hit.",
-        "Do not hit when the video provides substantive product features or usage, even if it also contains buying guidance."
+        "Do not hit when the video provides substantive product features, material, size, usage, softness/comfort, compatibility, operation, or scenario information, even if it also contains buying guidance.",
+        "Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information."
       ],
       "required_evidence": [
         "ASR or OCR evidence showing near-total marketing pitch"
@@ -161,6 +166,7 @@
       "priority": "lower_than_ipp_mfe_piracy_no_product_and_pure_marketing",
       "triggers": [
         "Strong visual evidence shows physically impossible product behavior, object materialization or disappearance, impossible structure deformation, impossible body or hand contact, or an impossible product effect.",
+        "Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.",
         "The issue affects consumer understanding of the product.",
         "The change cannot reasonably be explained by the sampling interval, normal editing, camera angle, or missing intermediate action."
       ],
@@ -227,7 +233,8 @@
       ],
       "false_positive_boundaries": [
         "Do not hit for apparel, simple goods, or visual products when the product is clearly shown.",
-        "Do not hit when visual demonstration itself provides enough product information."
+        "Do not hit when visual demonstration itself provides enough product information.",
+        "For simple apparel, accessories, plush toys, lamps, decor, and similar visual goods, clear product display is usually sufficient unless the category needs function or safety explanation."
       ],
       "required_evidence": [
         "category or video context showing explanation is required",
@@ -254,10 +261,13 @@
       "issue_type": "still_frame",
       "label": "静止帧",
       "triggers": [
-        "Sampled frames are effectively static and provide no substantive product demonstration."
+        "Sampled frames are effectively static and provide no substantive product demonstration.",
+        "The sampled frames show nearly identical composition without meaningful camera movement, product movement, pose shift, angle shift, or lighting shift."
       ],
       "false_positive_boundaries": [
-        "Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, or meaningful product display."
+        "Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, or meaningful product display.",
+        "Do not hit merely because ASR/OCR is weak or absent when frames show clear product use or changing visual evidence.",
+        "Do not hit for slideshow-like product presentation if the frames show different angles, lighting, or product states that help inspect the item."
       ],
       "required_evidence": [
         "sampled frame comparison evidence"

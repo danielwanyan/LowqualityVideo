@@ -35,7 +35,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-09-17-v4-video-first-binary-boundary-calibration")
+        self.assertEqual(data["version"], "2026-09-17-v5-eu599-fp-boundary-calibration")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
 
@@ -83,7 +83,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v4", text)
+        self.assertIn("LowqualityVideo Rules v5", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str, comments, product_review_summary", text)
         self.assertIn("Forbidden final decision: manual_review", text)
@@ -93,6 +93,24 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("lower priority", text)
         self.assertIn("If uncertain, choose clean", text)
         self.assertIn("pirated_content", text)
+
+    def test_v5_false_positive_boundaries_from_599_eval_are_encoded(self):
+        data = self.load_rules()
+        by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
+        text = TEXT_RULES.read_text(encoding="utf-8").lower()
+
+        self.assertEqual(data["version"], "2026-09-17-v5-eu599-fp-boundary-calibration")
+        self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
+        self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
+        self.assertIn("商品详情页", text)
+        self.assertIn("color-only", by_type["video_product_mismatch"])
+        self.assertIn("brand text", by_type["video_product_mismatch"])
+        self.assertIn("replying to a user comment", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("self-verifying", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("angle shift", by_type["still_frame"])
+        self.assertIn("lighting shift", by_type["still_frame"])
+        self.assertIn("directly taking an item from a sealed or unopened package", by_type["unrealistic_or_continuity_error"])
+        self.assertIn("connector, plug, hook, screw, support bar, or mounting structure", by_type["unrealistic_or_continuity_error"])
 
 
 if __name__ == "__main__":
