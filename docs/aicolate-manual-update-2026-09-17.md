@@ -114,6 +114,30 @@ Stop here and run one sample before continuing.
 
 ## Step 5: Evidence_Gate
 
+## Step 5: Issue_Boundary_Gate_Builder
+
+Input Variables:
+
+- `video_text_panel = {{video_text_panel}}`
+- `video_data_quality_json = {{video_data_quality_json}}`
+- `product_aux_panel = {{product_aux_panel}}`
+- `product_aux_data_quality_json = {{product_aux_data_quality_json}}`
+
+Output panel:
+
+- `issue_boundary_gates_json`
+- `issue_boundary_gate_panel`
+
+Paste full code from:
+
+```text
+/Users/bytedance/LowqualityVideo/code_nodes/issue_boundary_gate_builder.py
+```
+
+Stop here and run one sample before continuing.
+
+## Step 6: Evidence_Gate
+
 Input Variables:
 
 - `video_frame_urls = {{video_frame_urls}}`
@@ -123,6 +147,7 @@ Input Variables:
 - `product_image_manifest = {{product_image_manifest}}`
 - `product_aux_data_quality_json = {{product_aux_data_quality_json}}`
 - `boundary_attention_packet = {{boundary_attention_packet}}`
+- `issue_boundary_gate_panel = {{issue_boundary_gate_panel}}`
 - `allowed_issue_types = {{allowed_issue_types}}`
 
 Output panel:
@@ -142,7 +167,7 @@ Paste full code from:
 
 Stop here and run one sample before continuing.
 
-## Step 6: SOP_Multimodal_Risk_Reviewer
+## Step 7: SOP_Multimodal_Risk_Reviewer
 
 System Prompt:
 
@@ -171,7 +196,7 @@ Input Variables:
 
 Do not wire `url`, `product_id`, `seller_id_str`, `comments`, `product_review_summary`, or `is_AIGC`.
 
-## Step 7: End Node
+## Step 8: End Node
 
 Connect End directly to the single output field from `SOP_Multimodal_Risk_Reviewer`.
 
@@ -181,7 +206,7 @@ Remove these nodes from the active path:
 - `Context_Builder`
 - `Output_Validator`
 
-## Step 8: Smoke Test
+## Step 9: Smoke Test
 
 Run three samples:
 

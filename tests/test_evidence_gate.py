@@ -23,11 +23,14 @@ class EvidenceGateTest(unittest.TestCase):
             "video_data_quality_json": json.dumps({"video_frames_available": True, "asr_available": True, "ocr_available": False}),
             "product_aux_data_quality_json": json.dumps({"product_images_available": True, "country_available": True}),
             "boundary_attention_packet": "PROJECT: LowqualityVideo",
+            "issue_boundary_gate_panel": "ISSUE BOUNDARY GATES\nMFE_CLAIM_GATE",
             "allowed_issue_types": "video_product_mismatch, none",
         })
 
         self.assertIn("Allowed final decisions: problematic, clean", result["final_reviewer_context"])
         self.assertIn("PROJECT: LowqualityVideo", result["final_reviewer_context"])
+        self.assertIn("ISSUE BOUNDARY GATES", result["final_reviewer_context"])
+        self.assertIn("MFE_CLAIM_GATE", result["final_reviewer_context"])
         self.assertEqual(result["gated_all_image_urls"], [
             "https://cdn.example.com/p.jpg",
             "https://cdn.example.com/f.jpg",

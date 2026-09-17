@@ -69,6 +69,7 @@ async def main(args: Args) -> Output:
     video_data_quality = _json_dict(params.get("video_data_quality_json") or params.get("video_data_quality"))
     product_quality = _json_dict(params.get("product_aux_data_quality_json"))
     boundary_attention_packet = _to_text(params.get("boundary_attention_packet"))
+    issue_boundary_gate_panel = _to_text(params.get("issue_boundary_gate_panel"))
     allowed_issue_types = _to_text(params.get("allowed_issue_types"))
 
     video_frames_available = bool(video_frame_urls) and _bool(video_data_quality, "video_frames_available")
@@ -107,6 +108,8 @@ async def main(args: Args) -> Output:
         product_image_manifest,
         "BOUNDARY ATTENTION",
         boundary_attention_packet,
+        "ISSUE BOUNDARY GATES",
+        issue_boundary_gate_panel,
         "FORBIDDEN CLAIMS",
         "\n".join(f"- {claim}" for claim in forbidden_claims),
     ]).strip()
