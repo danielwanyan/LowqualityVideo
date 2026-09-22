@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6
+LowqualityVideo Rules v6.1
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -62,7 +62,8 @@ If the video claim is consistent with the bound product and is not materially mo
 
 Rule V3: suspected_pirated_or_reused_content / 疑似盗版 / 疑似盗剪
 Hit when the video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI/environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.
-Do not hit for replying to a user comment, showing another creator briefly and then self-verifying, proof-style self-comparison, product validation, debunking content, same creator appearing in different scenes, generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal.
+Do not hit for replying to a user comment, showing another creator briefly and then self-verifying, proof-style self-comparison, product validation, debunking content, same creator appearing in different scenes, generic blurry footage, simple edits, style shifts, ordinary b-roll, or a transition from introductory scenery/lifestyle footage into a substantive product demonstration without a concrete copied/reused-content signal.
+A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change. Ordinary b-roll or a scene transition alone is clean.
 is_aigc is not piracy evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
@@ -75,6 +76,7 @@ Hit when the video talks about or promotes the product but does not show the phy
 AI-generated style does not equal no physical product display.
 Do not hit if the sampled frames clearly show the bound product or a substantive use scene.
 A visible package, an identifiable product being worn, or a real application, operation, installation, or use action counts as physical product display.
+If unrelated content dominates, use irrelevant_product_promotion instead of also adding no_physical_product_display. Reserve no_physical_product_display for product-focused speech or promotion whose product is not shown.
 
 Rule V6: irrelevant_product_promotion / 内容与商品无关推广
 Hit when most of the video body is unrelated to the bound product, and the product appears only briefly, at the end, or not substantively.
@@ -86,6 +88,7 @@ Rule V7: unrealistic_or_continuity_error / 穿帮 / 不符现实
 is_aigc=1 is required before this issue can be considered. is_aigc=0, missing, or invalid blocks the issue.
 is_aigc=1 only enables review and never creates a hit by itself.
 Hit only when strong visual evidence affects consumer understanding of the product and cannot reasonably be explained by sampling interval, normal editing, camera angle, or missing intermediate action. Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.
+A finger or hand pressing, inserting, fastening, or manipulating a screw, pin, connector, or mounting part without a feasible physical action or required tool is a positive example when it cannot happen as shown.
 Do not hit for ordinary action jumps between sampled frames, missing intermediate actions alone, slight hand artifacts, lighting or angle changes, motion blur, or process-video cuts that do not affect product understanding.
 If uncertain, choose clean.
 
@@ -95,6 +98,7 @@ Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display withou
 
 Rule V9: disgusting_or_terrifying_visual / 恶心恐怖
 Hit when the visual subject creates strong discomfort, dense-phobia-like reaction, injury, dirt, bodily, or horror-style effect.
+Large-volume viscous, slimy, glue-like, mucus-like, or strongly unappetizing material being lifted, stretched, handled, or ingested can qualify when the visual presentation clearly creates disgust, even if the material is technically edible.
 Do not hit for mildly unattractive visuals or normal product demonstration.
 
 Rule V10: pirated_content / 盗版内容
@@ -105,6 +109,7 @@ Rule V11: description_not_detailed / 内容介绍不详细（低质）
 Hit when the video fails to provide meaningful product information for categories where function or usage explanation is required, such as supplements, health products, electronics, tools, or appliances.
 Do not hit for apparel, simple goods, or visual products when the product is clearly shown.
 Do not hit when visual demonstration itself provides enough product information. For simple apparel, accessories, plush toys, lamps, decor, and similar visual goods, clear product display is usually sufficient unless the category needs function or safety explanation.
+A clearly identifiable product name and package that communicate the core product purpose count as meaningful product information, including for supplements or health products. Do not require ingredients, mechanism, dosage, or detailed efficacy when the product name and package already make the basic product and purpose clear.
 
 Rule V12: out_of_app_transaction / 站外引流交易
 Hit when the video clearly instructs users to transact or contact outside the platform using an external website, QR code, off-platform channel, or external transaction instruction.
@@ -112,7 +117,7 @@ Do not hit TikTok in-app purchase guidance.
 Do not hit private-message requests by themselves.
 
 Rule V13: still_frame / 静止帧
-Hit when sampled frames are effectively static and provide no substantive product demonstration. The sampled frames must show nearly identical composition without meaningful camera movement, product movement, pose shift, angle shift, or lighting shift.
+Hit when sampled frames are effectively static and provide no substantive product demonstration. This includes nearly identical composition and can also include a static-image sequence, slideshow, or several frozen-image segments when the changes are only cuts between still images and there is no substantive live-motion product demonstration.
 Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, meaningful product display, or different angles/states that help inspect the item.
 
 Output requirements

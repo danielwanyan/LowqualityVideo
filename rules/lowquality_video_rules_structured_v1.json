@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-22-v6-reviewed-gt-priority",
+  "version": "2026-09-22-v6.1-smoke-calibration",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -133,11 +133,14 @@
         "Do not hit for showing another creator briefly and then self-verifying the product.",
         "Do not hit for proof-style self-comparison, product validation, or debunking content.",
         "Do not hit only because the same creator appears in different scenes.",
-        "Do not hit for generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal.",
+        "Do not hit for generic blurry footage, simple edits, style shifts, ordinary b-roll, or a scene transition without a concrete copied/reused-content signal.",
+        "A transition from introductory scenery or lifestyle b-roll into a substantive product demonstration is not piracy or reuse by itself.",
+        "A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change.",
         "is_aigc is not piracy evidence. Never use is_aigc=1 to support suspected piracy or reuse."
       ],
       "required_evidence": [
-        "specific visual or textual piracy/reuse signal"
+        "specific visual or textual piracy/reuse signal",
+        "for a Tier B hit, a concrete source-authenticity signal rather than ordinary b-roll or scene transition alone"
       ]
     },
     {
@@ -169,7 +172,8 @@
         "AI-generated style does not equal no physical product display.",
         "Do not hit if the sampled frames clearly show the bound product or a substantive use scene.",
         "Do not hit only because product display is brief when it is clear and relevant.",
-        "A visible package, an identifiable product being worn, or a real application, operation, installation, or use action counts as physical product display."
+        "A visible package, an identifiable product being worn, or a real application, operation, installation, or use action counts as physical product display.",
+        "If unrelated content dominates the video, classify the issue as irrelevant_product_promotion instead of also adding no_physical_product_display. Reserve no_physical_product_display for product-focused speech or promotion whose product is not shown."
       ],
       "required_evidence": [
         "video frame evidence that product is not shown"
@@ -201,7 +205,8 @@
         "Strong visual evidence shows physically impossible product behavior, object materialization or disappearance, impossible structure deformation, impossible body or hand contact, or an impossible product effect.",
         "Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.",
         "The issue affects consumer understanding of the product.",
-        "The change cannot reasonably be explained by the sampling interval, normal editing, camera angle, or missing intermediate action."
+        "The change cannot reasonably be explained by the sampling interval, normal editing, camera angle, or missing intermediate action.",
+        "A finger or hand appears to press, insert, fasten, or manipulate a screw, pin, connector, or mounting part in a physically impossible way, without the required tool or feasible contact."
       ],
       "false_positive_boundaries": [
         "is_aigc=1 only enables review and never creates a hit by itself.",
@@ -234,7 +239,8 @@
       "issue_type": "disgusting_or_terrifying_visual",
       "label": "恶心恐怖",
       "triggers": [
-        "The visual subject creates strong discomfort, dense-phobia-like reaction, injury, dirt, bodily, or horror-style effect."
+        "The visual subject creates strong discomfort, dense-phobia-like reaction, injury, dirt, bodily, or horror-style effect.",
+        "Large-volume viscous, slimy, glue-like, mucus-like, or otherwise strongly unappetizing material is lifted, stretched, handled, or ingested in a way that creates clear visual disgust, even when it is technically an edible product."
       ],
       "false_positive_boundaries": [
         "Do not hit for mildly unattractive visuals or normal product demonstration."
@@ -267,7 +273,8 @@
       "false_positive_boundaries": [
         "Do not hit for apparel, simple goods, or visual products when the product is clearly shown.",
         "Do not hit when visual demonstration itself provides enough product information.",
-        "For simple apparel, accessories, plush toys, lamps, decor, and similar visual goods, clear product display is usually sufficient unless the category needs function or safety explanation."
+        "For simple apparel, accessories, plush toys, lamps, decor, and similar visual goods, clear product display is usually sufficient unless the category needs function or safety explanation.",
+        "A clearly identifiable product name and package that communicate the core product purpose count as meaningful product information, including for supplements or health products. Do not require ingredients, mechanism, dosage, or detailed efficacy when the name and package already make the basic product and purpose clear."
       ],
       "required_evidence": [
         "category or video context showing explanation is required",
@@ -295,12 +302,13 @@
       "label": "静止帧",
       "triggers": [
         "Sampled frames are effectively static and provide no substantive product demonstration.",
-        "The sampled frames show nearly identical composition without meaningful camera movement, product movement, pose shift, angle shift, or lighting shift."
+        "The sampled frames show nearly identical composition without meaningful camera movement, product movement, pose shift, angle shift, or lighting shift.",
+        "A static-image sequence, slideshow, or several frozen-image segments can also qualify when the changes are only cuts between still images and there is no substantive live-motion product demonstration."
       ],
       "false_positive_boundaries": [
         "Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, or meaningful product display.",
         "Do not hit merely because ASR/OCR is weak or absent when frames show clear product use or changing visual evidence.",
-        "Do not hit for slideshow-like product presentation if the frames show different angles, lighting, or product states that help inspect the item."
+        "Do not hit for slideshow-like product presentation when the changing still images themselves provide a substantive, coherent product inspection from useful angles or states."
       ],
       "required_evidence": [
         "sampled frame comparison evidence"

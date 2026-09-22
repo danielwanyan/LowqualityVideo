@@ -52,7 +52,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-09-22-v6-reviewed-gt-priority")
+        self.assertEqual(data["version"], "2026-09-22-v6.1-smoke-calibration")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-09-22-v6-reviewed-gt-priority")
+        self.assertEqual(data["version"], "2026-09-22-v6.1-smoke-calibration")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -152,6 +152,13 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("approximately one third", by_type["irrelevant_product_promotion"])
         self.assertIn("is_aigc=1 is required", by_type["unrealistic_or_continuity_error"])
         self.assertIn("is_aigc is not piracy evidence", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("ordinary b-roll", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("source-authenticity", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("irrelevant_product_promotion", by_type["no_physical_product_display"])
+        self.assertIn("finger", by_type["unrealistic_or_continuity_error"])
+        self.assertIn("viscous", by_type["disgusting_or_terrifying_visual"])
+        self.assertIn("product name and package", by_type["description_not_detailed"])
+        self.assertIn("static-image sequence", by_type["still_frame"])
 
 
 if __name__ == "__main__":
