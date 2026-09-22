@@ -1,10 +1,27 @@
 {
-  "version": "2026-09-17-v5-eu599-fp-boundary-calibration",
+  "version": "2026-09-22-v6-reviewed-gt-priority",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
     "problematic",
     "clean"
+  ],
+  "business_label_priority": [
+    "疑似盗版 / 疑似盗剪",
+    "功能效果虚假夸大",
+    "穿帮 / 不符现实",
+    "仅营销叫卖",
+    "恶心恐怖",
+    "擦边低俗",
+    "内容介绍不详细（低质）",
+    "站外引流交易",
+    "盗版内容",
+    "静止帧",
+    "无实物展示（围绕商品讲解）",
+    "内容与商品无关推广",
+    "挂车商品与讲解商品不一致",
+    "无问题",
+    "视频不可见"
   ],
   "evidence_contract": {
     "judgment_evidence": [
@@ -33,21 +50,32 @@
     "timestamp_boundary": "Do not claim exact elapsed time between frames unless explicit timestamps are provided."
   },
   "primary_issue_types": [
-    "video_product_mismatch",
-    "misleading_functionality_or_effect",
     "suspected_pirated_or_reused_content",
-    "pure_marketing_pitch",
-    "no_physical_product_display",
-    "irrelevant_product_promotion",
+    "misleading_functionality_or_effect",
     "unrealistic_or_continuity_error",
-    "sexual_or_vulgar_hook",
+    "pure_marketing_pitch",
     "disgusting_or_terrifying_visual",
-    "pirated_content",
+    "sexual_or_vulgar_hook",
     "description_not_detailed",
     "out_of_app_transaction",
+    "pirated_content",
     "still_frame",
+    "no_physical_product_display",
+    "irrelevant_product_promotion",
+    "video_product_mismatch",
     "none"
   ],
+  "output_priority_contract": {
+    "detected_issue_types": "Return every independently supported issue, deduplicated and sorted by primary_issue_types.",
+    "primary_issue_type": "Use the first item of the sorted detected_issue_types list, or none when the list is empty.",
+    "tagsContent": "Return every corresponding Chinese low-quality label in the same canonical order. Never use source array order as priority.",
+    "non_issue_labels": "无问题 is represented by ratings=[ok] with empty tagsContent. 视频不可见 is represented by tagsAttribute=[视频不可见]. Neither is inserted into detected_issue_types."
+  },
+  "optional_input_contract": {
+    "is_aigc": "Optional integer. 0 means non-AIGC and 1 means AIGC. Missing is not rewritten as 0 or unknown.",
+    "scope": "is_aigc is used only by unrealistic_or_continuity_error. It is not evidence for suspected piracy/reuse or any other issue.",
+    "continuity_gate": "is_aigc=1 is required but not sufficient; concrete visual abnormality evidence is also required."
+  },
   "rules": [
     {
       "id": "V1",
@@ -84,7 +112,10 @@
         "Do not use product detail page claims or product image marketing copy by themselves to decide that the video is exaggerated. 商品详情页或商品图文案不能单独触发视频夸大。",
         "Do not hit for ordinary advertising tone, subjective praise, metaphor, fashion or fit claims without concrete false promise, or expected cleaning, shaving, styling, cooking, or demonstration outcomes.",
         "Do not hit when the claim is a common category claim and the video itself does not make a stronger promise than the visible product evidence.",
-        "Minor numerical ambiguity that can reasonably be ordinary speech error is not enough."
+        "Minor numerical ambiguity that can reasonably be ordinary speech error is not enough.",
+        "A concrete claim is not automatically misleading. It must be materially stronger than the bound product or contradicted by concrete product evidence, or the demonstrated effect must be physically impossible.",
+        "Do not hit for vague metaphors, ordinary category effects, routine marketing language, or one-off ordinary speech error when there is no material consumer deception.",
+        "If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong."
       ],
       "required_evidence": [
         "specific frame, ASR, or OCR claim",
@@ -104,7 +135,8 @@
         "Do not hit for showing another creator briefly and then self-verifying the product.",
         "Do not hit for proof-style self-comparison, product validation, or debunking content.",
         "Do not hit only because the same creator appears in different scenes.",
-        "Do not hit for generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal."
+        "Do not hit for generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal.",
+        "is_aigc is not piracy evidence. Never use is_aigc=1 to support suspected piracy or reuse."
       ],
       "required_evidence": [
         "specific visual or textual piracy/reuse signal"
@@ -121,7 +153,8 @@
       "false_positive_boundaries": [
         "Weak but real product information should usually prevent this hit.",
         "Do not hit when the video provides substantive product features, material, size, usage, softness/comfort, compatibility, operation, or scenario information, even if it also contains buying guidance.",
-        "Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information."
+        "Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.",
+        "Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless the use is only a token moment and marketing pressure still dominates nearly the whole video."
       ],
       "required_evidence": [
         "ASR or OCR evidence showing near-total marketing pitch"
@@ -137,7 +170,8 @@
       "false_positive_boundaries": [
         "AI-generated style does not equal no physical product display.",
         "Do not hit if the sampled frames clearly show the bound product or a substantive use scene.",
-        "Do not hit only because product display is brief when it is clear and relevant."
+        "Do not hit only because product display is brief when it is clear and relevant.",
+        "A visible package, an identifiable product being worn, or a real application, operation, installation, or use action counts as physical product display."
       ],
       "required_evidence": [
         "video frame evidence that product is not shown"
@@ -153,7 +187,8 @@
       ],
       "false_positive_boundaries": [
         "Do not hit merely because the opening has setup or a short unrelated segment.",
-        "Do not hit if a later segment provides real product demonstration or explanation."
+        "Do not hit if a later segment provides real product demonstration or explanation.",
+        "Do not hit when the product has substantive screen presence, including approximately one third of the sampled video, unless the remaining unrelated content clearly dominates the promotional message."
       ],
       "required_evidence": [
         "video frame or ASR/OCR evidence of unrelated main content"
@@ -163,15 +198,15 @@
       "id": "V7",
       "issue_type": "unrealistic_or_continuity_error",
       "label": "穿帮 / 不符现实",
-      "priority": "lower_than_ipp_mfe_piracy_no_product_and_pure_marketing",
       "triggers": [
+        "is_aigc=1 is required before this issue can be considered; is_aigc=0, missing, or invalid blocks this issue.",
         "Strong visual evidence shows physically impossible product behavior, object materialization or disappearance, impossible structure deformation, impossible body or hand contact, or an impossible product effect.",
         "Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.",
         "The issue affects consumer understanding of the product.",
         "The change cannot reasonably be explained by the sampling interval, normal editing, camera angle, or missing intermediate action."
       ],
       "false_positive_boundaries": [
-        "This label is lower priority because the workflow only receives up to 8 sampled frames.",
+        "is_aigc=1 only enables review and never creates a hit by itself.",
         "Do not hit for ordinary action jumps between sampled frames.",
         "Do not hit for missing intermediate actions alone.",
         "Do not hit for slight hand artifacts, lighting or angle changes, motion blur, or process-video cuts that do not affect product understanding.",

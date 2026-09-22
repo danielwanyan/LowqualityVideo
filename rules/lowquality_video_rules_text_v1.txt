@@ -1,4 +1,4 @@
-LowqualityVideo Rules v5
+LowqualityVideo Rules v6
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -22,6 +22,32 @@ ratings must be [ok] when tagsContent is empty.
 Do not output tagsProduct.
 Only output 视频不可见 in tagsAttribute when video frames are missing or unusable.
 
+Canonical business label priority
+There are 15 business labels in total. The first 13 are low-quality issue labels ordered from highest to lowest priority:
+1. suspected_pirated_or_reused_content
+2. misleading_functionality_or_effect
+3. unrealistic_or_continuity_error
+4. pure_marketing_pitch
+5. disgusting_or_terrifying_visual
+6. sexual_or_vulgar_hook
+7. description_not_detailed
+8. out_of_app_transaction
+9. pirated_content
+10. still_frame
+11. no_physical_product_display
+12. irrelevant_product_promotion
+13. video_product_mismatch
+14. 无问题
+15. 视频不可见
+Return every supported issue in detected_issue_types in this order. primary_issue_type must be the first detected issue, or none when no issue passes.
+无问题 is represented by ratings=[ok] and empty tagsContent. 视频不可见 is represented by tagsAttribute=[视频不可见]. Neither belongs in detected_issue_types.
+
+Optional AIGC input contract
+is_aigc is optional and accepts only numeric 0 or 1. Missing is not a third value and must not be rewritten as 0 or unknown.
+is_aigc=1 is required but not sufficient for unrealistic_or_continuity_error; concrete visual abnormality evidence is also required.
+is_aigc=0, missing, or invalid blocks unrealistic_or_continuity_error.
+Never use is_aigc as evidence for suspected_pirated_or_reused_content, pirated_content, MFE, or any other issue.
+
 Rule V1: video_product_mismatch / 挂车商品与讲解商品不一致
 Hit when video frames or ASR/OCR clearly promote or explain a main product that conflicts with product images in core category, function, form, visible quantity, key specification, size, dimension, or promised use. Same product style does not clear a material size or dimension contradiction.
 Do not hit for color-only differences, minor style/material/texture differences, lighting, angle, packaging language, ordinary brand-text differences, functional words printed on a product such as MUSIC SOUND, or a brief prop/background item. Do not use brand text, OCR text, product-page wording, or package language alone as IPP evidence unless the video is clearly promoting a different physical product.
@@ -31,27 +57,34 @@ Rule V2: misleading_functionality_or_effect / 功能效果虚假夸大
 Hit when frame_list, ASR, or OCR makes a concrete misleading claim about efficacy, speed, durability, medical or health effect, quantity, time, before/after result, safety, or physical capability. The claim must be supported by frame_list, ASR, or OCR from the video itself; product images are auxiliary only.
 Do not hit from product images alone. Do not use product detail page claims or product image marketing copy by themselves to decide that the video is exaggerated. 商品详情页或商品图文案不能单独触发视频夸大。
 Do not hit for ordinary advertising tone, subjective praise, metaphor, fashion or fit claims without concrete false promise, expected cleaning/shaving/styling/cooking outcomes, common category claims, or minor numerical ambiguity that can be ordinary speech error.
+A concrete claim is not automatically misleading. It must be materially stronger than the bound product, contradicted by concrete product evidence, or shown through a physically impossible demonstration.
+If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong.
 
 Rule V3: suspected_pirated_or_reused_content / 疑似盗版 / 疑似盗剪
 Hit when the video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI/environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.
 Do not hit for replying to a user comment, showing another creator briefly and then self-verifying, proof-style self-comparison, product validation, debunking content, same creator appearing in different scenes, generic blurry footage, simple edits, or style shifts without a concrete copied/reused-content signal.
+is_aigc is not piracy evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
 Hit only when nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure, with almost no product function, material, size, use scenario, operation method, or realistic product information.
 Weak but real product information should usually prevent this hit. Do not hit when the video provides substantive product features, material, size, usage, softness/comfort, compatibility, operation, or scenario information, even if it also contains buying guidance. Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.
+Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless it is only a token moment and marketing pressure still dominates nearly the whole video.
 
 Rule V5: no_physical_product_display / 无实物展示（围绕商品讲解）
 Hit when the video talks about or promotes the product but does not show the physical product or a substantive product-use scene.
 AI-generated style does not equal no physical product display.
 Do not hit if the sampled frames clearly show the bound product or a substantive use scene.
+A visible package, an identifiable product being worn, or a real application, operation, installation, or use action counts as physical product display.
 
 Rule V6: irrelevant_product_promotion / 内容与商品无关推广
 Hit when most of the video body is unrelated to the bound product, and the product appears only briefly, at the end, or not substantively.
 Do not hit merely because the opening has setup or a short unrelated segment.
 Do not hit if a later segment provides real product demonstration or explanation.
+Do not hit when the product has substantive screen presence, including approximately one third of the sampled video, unless the remaining unrelated content clearly dominates the promotional message.
 
 Rule V7: unrealistic_or_continuity_error / 穿帮 / 不符现实
-This label is lower priority than IPP, MFE, suspected pirated/reused content, no-product display, and pure marketing because the workflow only receives up to 8 sampled frames.
+is_aigc=1 is required before this issue can be considered. is_aigc=0, missing, or invalid blocks the issue.
+is_aigc=1 only enables review and never creates a hit by itself.
 Hit only when strong visual evidence affects consumer understanding of the product and cannot reasonably be explained by sampling interval, normal editing, camera angle, or missing intermediate action. Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.
 Do not hit for ordinary action jumps between sampled frames, missing intermediate actions alone, slight hand artifacts, lighting or angle changes, motion blur, or process-video cuts that do not affect product understanding.
 If uncertain, choose clean.
@@ -85,7 +118,7 @@ Do not hit when frames show camera movement, angle shift, lighting shift, pose s
 Output requirements
 Return raw JSON only in the project schema.
 overall_decision must be either problematic or clean.
-primary_issue_type must be one of the v5 issue types or none.
+primary_issue_type must be one of the v6 issue types or none.
 All summaries and reasons must be in Chinese.
 Every problematic result must cite concrete evidence from frame_list, ASR, OCR, images, or country.
 If evidence is weak, ambiguous, incomplete, or only suspicious, choose clean and explain the boundary.
