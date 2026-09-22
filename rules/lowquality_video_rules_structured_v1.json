@@ -34,9 +34,7 @@
     "display_only": [
       "url",
       "product_id",
-      "seller_id_str",
-      "comments",
-      "product_review_summary"
+      "seller_id_str"
     ],
     "notes": [
       "Do not use display-only fields as judgment evidence.",

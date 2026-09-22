@@ -72,18 +72,17 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         )
         self.assertEqual(
             data["evidence_contract"]["display_only"],
-            ["url", "product_id", "seller_id_str", "comments", "product_review_summary"],
+            ["url", "product_id", "seller_id_str"],
         )
         self.assertEqual(data["decision_values"], ["problematic", "clean"])
 
-    def test_comments_and_product_review_summary_are_excluded(self):
+    def test_removed_start_fields_are_absent_from_the_contract(self):
         data = self.load_rules()
 
         contract = data["evidence_contract"]
-        self.assertIn("comments", contract["display_only"])
-        self.assertIn("product_review_summary", contract["display_only"])
-        self.assertNotIn("comments", contract["judgment_evidence"])
-        self.assertNotIn("product_review_summary", contract["judgment_evidence"])
+        serialized = json.dumps(contract, ensure_ascii=False)
+        for removed_field in ("author_id", "comments", "product_review_summary"):
+            self.assertNotIn(removed_field, serialized)
 
         for rule in data["rules"]:
             joined = " ".join(
@@ -109,7 +108,10 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         self.assertIn("LowqualityVideo Rules v6", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
-        self.assertIn("Display-only fields: url, product_id, seller_id_str, comments, product_review_summary", text)
+        self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
+        self.assertNotIn("author_id", text)
+        self.assertNotIn("comments", text)
+        self.assertNotIn("product_review_summary", text)
         self.assertIn("Forbidden final decision: manual_review", text)
         self.assertIn("Forbidden output: tagsProduct", text)
         self.assertIn("color-only differences", text)

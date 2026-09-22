@@ -3,7 +3,7 @@ LowqualityVideo Rules v6
 This workflow is video-first. The final model judges only video low-quality signals.
 
 Allowed model evidence: frame_list, ASR, OCR, images, country.
-Display-only fields: url, product_id, seller_id_str, comments, product_review_summary.
+Display-only fields: url, product_id, seller_id_str.
 Do not use display-only fields as judgment evidence.
 
 Allowed final decisions: problematic, clean.

@@ -26,14 +26,13 @@ The workflow reuses the verified input shape and orchestration pattern from the 
 
 ## Start Inputs
 
-The new workflow uses the video and product evidence fields from the existing `video-product-lowquality` input shape, removes `comments` and `product_review_summary` from analysis, and adds one new field:
+The workflow uses the following video and product evidence fields and adds one AIGC attribute field:
 
 ```text
 video_id
 OCR
 ASR
 country
-author_id
 url
 product_id
 images
@@ -56,12 +55,6 @@ Field semantics:
 - It only increases attention for `unrealistic_or_continuity_error`.
 - It does not increase attention for `misleading_functionality_and_effect`, `no_physical_product_display`, `still_frame`, or any other issue type.
 - It never creates a hit without concrete frame, ASR, OCR, or product image evidence.
-
-Excluded inputs:
-
-- `comments` and `product_review_summary` must not be wired into the analysis workflow.
-- Do not create a comment/review builder node for this project.
-- Do not use comment or product review content to support or deny any label.
 
 ## In-Scope Issue Types
 
@@ -251,7 +244,6 @@ Responsibilities:
 - Explain the image order in `all_image_manifest`.
 - Preserve the frame sampling contract.
 - Separate video evidence, product reference evidence, AIGC attribute, and rule context.
-- Explicitly state that comments and product_review_summary are excluded from analysis.
 
 ### Evidence_Gate
 

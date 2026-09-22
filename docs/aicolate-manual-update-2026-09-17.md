@@ -15,8 +15,6 @@ Keep these fields for human display or tracing only. Do not wire them into the f
 - `url`
 - `product_id`
 - `seller_id_str`
-- `comments`
-- `product_review_summary`
 - `is_AIGC`
 
 ## Step 1: HTTP Rule Nodes
@@ -68,7 +66,7 @@ Input Variables:
 - `images = {{images}}`
 - `country = {{country}}`
 
-Do not wire `product_id`, `seller_id_str`, `comments`, or `product_review_summary`.
+Do not wire `product_id` or `seller_id_str`.
 
 Output panel:
 
@@ -194,7 +192,7 @@ Input Variables:
 - `OCR = {{OCR}}`
 - `country = {{country}}`
 
-Do not wire `url`, `product_id`, `seller_id_str`, `comments`, `product_review_summary`, or `is_AIGC`.
+Do not wire `url`, `product_id`, `seller_id_str`, or `is_AIGC`.
 
 ## Step 8: End Node
 

@@ -27,8 +27,7 @@
 ## Task 1: Start Node
 
 - [ ] Create a new Aicolate workflow named `LowqualityVideo`.
-- [ ] Add 11 Start fields as String: `video_id`, `OCR`, `ASR`, `country`, `author_id`, `url`, `product_id`, `images`, `seller_id_str`, `frame_list`, `is_AIGC`.
-- [ ] Do not add `comments` or `product_review_summary`; they must not enter analysis.
+- [ ] Add 10 Start fields: `video_id`, `OCR`, `ASR`, `country`, `url`, `product_id`, `images`, `seller_id_str`, `frame_list`, and optional `is_aigc`.
 - [ ] Run one Start preview and confirm long IDs remain strings.
 
 ## Task 2: GitHub Rule HTTP Nodes
