@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-22-v6.1-smoke-calibration",
+  "version": "2026-10-12-v6.2-visual-boundary-human-review",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -239,14 +239,18 @@
       "issue_type": "disgusting_or_terrifying_visual",
       "label": "恶心恐怖",
       "triggers": [
-        "The visual subject creates strong discomfort, dense-phobia-like reaction, injury, dirt, bodily, or horror-style effect.",
-        "Large-volume viscous, slimy, glue-like, mucus-like, or otherwise strongly unappetizing material is lifted, stretched, handled, or ingested in a way that creates clear visual disgust, even when it is technically an edible product."
+        "A strongly disturbing visual subject fills, dominates, or persists across the presentation, such as severe infestation, injury, dense-phobia-like imagery, bodily or horror-style content.",
+        "Large-volume viscous, slimy, glue-like, mucus-like, or otherwise strongly unappetizing material is lifted, stretched, handled, or ingested in a way that dominates the visual presentation and creates clear disgust, even when it is technically an edible product."
       ],
       "false_positive_boundaries": [
-        "Do not hit for mildly unattractive visuals or normal product demonstration."
+        "Do not hit for mildly unattractive, brief, localized, or non-dominant visuals.",
+        "Do not hit when dirt, a dirty toilet, or similar material appears as the before, during, or after state in a cleaning product demonstration.",
+        "Do not hit humor, a calendar, packaging, printed imagery, novelty content, or product art merely because it depicts an unpleasant subject.",
+        "Do not hit for normal product demonstration."
       ],
       "required_evidence": [
-        "specific visual evidence"
+        "specific visual evidence describing strength, screen coverage, and persistence",
+        "evidence that the disturbing subject dominates and is not cleaning-demo or novelty/product-art context"
       ]
     },
     {
@@ -301,17 +305,17 @@
       "issue_type": "still_frame",
       "label": "静止帧",
       "triggers": [
-        "Sampled frames are effectively static and provide no substantive product demonstration.",
-        "The sampled frames show nearly identical composition without meaningful camera movement, product movement, pose shift, angle shift, or lighting shift.",
-        "A static-image sequence, slideshow, or several frozen-image segments can also qualify when the changes are only cuts between still images and there is no substantive live-motion product demonstration."
+        "All sampled frames are effectively identical in content, composition, angle, color, lighting, pose, hand position, product position, and product state.",
+        "The all-frame comparison finds no meaningful visual change and sparse sampling still provides concrete evidence that the video remains immobile."
       ],
       "false_positive_boundaries": [
-        "Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, or meaningful product display.",
+        "Do not hit when frames show any meaningful visual change, including content shift, composition shift, camera angle shift, color shift, lighting shift, pose shift, hand position, product position, or product-state change.",
         "Do not hit merely because ASR/OCR is weak or absent when frames show clear product use or changing visual evidence.",
-        "Do not hit for slideshow-like product presentation when the changing still images themselves provide a substantive, coherent product inspection from useful angles or states."
+        "Do not hit a slideshow, PPT-style presentation, or sequence of different still images; switching between different images is visual change.",
+        "If sparse sampling cannot prove that the full video remains visually identical, choose clean."
       ],
       "required_evidence": [
-        "sampled frame comparison evidence"
+        "concrete all-sampled-frame comparison evidence proving effective identity and no meaningful visual change"
       ]
     }
   ],

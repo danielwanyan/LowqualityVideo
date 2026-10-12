@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.1
+LowqualityVideo Rules v6.2
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -97,9 +97,11 @@ Hit when the video uses a clear sexualized hook, vulgar, adult, dating, or sexua
 Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display without clear vulgar/adult framing.
 
 Rule V9: disgusting_or_terrifying_visual / 恶心恐怖
-Hit when the visual subject creates strong discomfort, dense-phobia-like reaction, injury, dirt, bodily, or horror-style effect.
-Large-volume viscous, slimy, glue-like, mucus-like, or strongly unappetizing material being lifted, stretched, handled, or ingested can qualify when the visual presentation clearly creates disgust, even if the material is technically edible.
-Do not hit for mildly unattractive visuals or normal product demonstration.
+Hit only when a strongly disturbing visual subject fills, dominates, or persists across the presentation, such as severe infestation, injury, dense-phobia-like imagery, bodily or horror-style content.
+Large-volume viscous, slimy, glue-like, mucus-like, or strongly unappetizing material being lifted, stretched, handled, or ingested can qualify when it dominates the visual presentation and clearly creates disgust, even if the material is technically edible.
+Do not hit mildly unattractive, brief, localized, or non-dominant visuals.
+Do not hit dirt, a dirty toilet, or similar material shown as the before, during, or after state in a cleaning product demonstration.
+Do not hit humor, a calendar, packaging, printed imagery, novelty content, or product art merely because it depicts an unpleasant subject.
 
 Rule V10: pirated_content / 盗版内容
 Hit when the video uses clearly pirated copyrighted video content as the main promotional body.
@@ -117,8 +119,10 @@ Do not hit TikTok in-app purchase guidance.
 Do not hit private-message requests by themselves.
 
 Rule V13: still_frame / 静止帧
-Hit when sampled frames are effectively static and provide no substantive product demonstration. This includes nearly identical composition and can also include a static-image sequence, slideshow, or several frozen-image segments when the changes are only cuts between still images and there is no substantive live-motion product demonstration.
-Do not hit when frames show camera movement, angle shift, lighting shift, pose shift, product movement, meaningful product display, or different angles/states that help inspect the item.
+Hit only when all sampled frames are effectively identical in content, composition, angle, color, lighting, pose, hand position, product position, and product state, with concrete all-frame evidence of no meaningful visual change.
+Do not hit when any content, composition, camera angle, color, lighting, pose, hand position, product position, or product-state change is visible.
+Do not hit a slideshow, PPT-style presentation, or sequence of different still images. Switching between different images is visual change.
+If sparse sampling cannot prove that the full video remains visually identical, choose clean.
 
 Output requirements
 Return raw JSON only in the project schema.
