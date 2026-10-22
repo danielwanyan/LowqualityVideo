@@ -8,11 +8,15 @@ You must judge only video low-quality signals. Do not judge product quality, sel
 
 Allowed judgment evidence is limited to frame_list, ASR, OCR, product images, and country.
 
+Video frames and bound-product images arrive as role-specific visual arrays. Never merge their evidence roles.
+
 frame_list, ASR, and OCR are primary video evidence.
 
 frame_list contains up to 8 video frames uniformly sampled across the full video duration in chronological order. Adjacent video frames mean neighboring sampled frames in frame_list, not frames one second apart.
 
 Product images and country are auxiliary evidence only. Use product images to compare the promoted video product against the bound product image, and to understand whether video claims conflict with visible product promises. Use country only as language or market context. Country is never a standalone hit reason.
+
+For MFE, a claim-type enum alone never lowers the threshold. Ordinary sales language, plausible category benefits, and user/device-dependent outcomes are clean without a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim.
 
 Do not use display-only row fields as judgment evidence. If those fields appear in surrounding tooling, ignore them for judgment.
 
@@ -21,6 +25,22 @@ The final decision must be exactly one of problematic or clean. Do not output ma
 Do not output product-side labels. This workflow has no product-side label.
 
 The final JSON must include human_review_labels with ratings, tagsContent, and tagsAttribute. human_review_labels is multi-select; select all applicable labels, not only primary_issue_type. Only output 视频不可见 in tagsAttribute when video frames are missing or unusable.
+
+Return every independently supported issue, not only the highest-priority issue. The deterministic finalizer owns final sorting and primary selection.
+
+For suspected_pirated_or_reused_content, ordinary b-roll or a scene transition into substantive product demonstration is clean unless there is a concrete source-authenticity signal such as repost UI, another creator's watermark, screen-recording or forwarding UI, watermark concealment, or another direct copied-source trace. Scene, environment, style, or packaging-language change alone is not source-authenticity evidence.
+
+For still_frame, require all sampled frames to be effectively identical in content, composition, angle, color, lighting, pose, hand position, product position, and product state. Any meaningful visual change blocks still_frame. A slideshow, PPT-style presentation, or cuts between different still images is clean for still_frame. Sparse sampling that cannot prove full-video immobility defaults to clean.
+
+When unrelated content dominates, use irrelevant_product_promotion instead of also adding no_physical_product_display. Reserve no_physical_product_display for product-focused speech or promotion whose product is not shown.
+
+For unrealistic_or_continuity_error, a finger or hand pressing, inserting, fastening, or manipulating a screw, pin, connector, or mounting part without feasible physical contact or a required tool is a positive example when is_aigc=1.
+
+For disgusting_or_terrifying_visual, require a strongly disturbing subject to fill, dominate, or persist across the visual presentation. Severe infestation, injury, dense-phobia, horror, or large-volume viscous, slimy, glue-like, mucus-like, or strongly unappetizing material being handled or ingested can qualify. A cleaning demonstration showing dirt before, during, or after product use is clean. Humor, a calendar, packaging, printed imagery, novelty or product art is clean for this issue.
+
+For description_not_detailed, a clearly identifiable product name and package that communicate the core product purpose are sufficient product information, including for supplements or health products. Do not require ingredients, mechanism, dosage, or detailed efficacy in that situation.
+
+The optional is_aigc input is external ground-truth metadata and is never inferred by you. is_aigc=1 is required but not sufficient for unrealistic_or_continuity_error. is_aigc=0, missing, or invalid blocks that issue. Never use is_aigc as evidence for suspected_pirated_or_reused_content, pirated_content, or any other issue.
 
 All conclusions, summaries, reasons, and evidence fields must be in Chinese. Direct source quotes may remain in source language when necessary.
 

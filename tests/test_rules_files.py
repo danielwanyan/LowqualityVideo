@@ -52,7 +52,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-10-12-v6.2-visual-boundary-human-review")
+        self.assertEqual(data["version"], "2026-10-22-v6.3-human-gt-dual-vision")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
@@ -106,7 +106,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v6.2", text)
+        self.assertIn("LowqualityVideo Rules v6.3", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
         self.assertNotIn("author_id", text)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-10-12-v6.2-visual-boundary-human-review")
+        self.assertEqual(data["version"], "2026-10-22-v6.3-human-gt-dual-vision")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -164,6 +164,30 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("all sampled frames", by_type["still_frame"])
         self.assertIn("slideshow", by_type["still_frame"])
         self.assertNotIn("static-image sequence, slideshow, or several frozen-image segments can also qualify", by_type["still_frame"])
+
+    def test_v6_3_human_gt_boundaries_are_encoded(self):
+        data = self.load_rules()
+        by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
+        text = TEXT_RULES.read_text(encoding="utf-8").lower()
+
+        for phrase in [
+            "ordinary sales language",
+            "plausible category benefit",
+            "user/device-dependent",
+            "direct hard contradiction",
+            "absolute guaranteed outcome",
+            "physically impossible claim",
+        ]:
+            self.assertIn(phrase, by_type["misleading_functionality_or_effect"])
+
+        self.assertIn("5000mah", text)
+        self.assertIn("pillow", text)
+        self.assertIn("contextually reasonable isolated profanity", by_type["sexual_or_vulgar_hook"])
+        self.assertIn("intimate grooming", by_type["sexual_or_vulgar_hook"])
+        self.assertIn("strong multi-source presenter", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("phone screen", by_type["no_physical_product_display"])
+        self.assertIn("ordinary model variation", by_type["video_product_mismatch"])
+        self.assertIn("frame change summary", by_type["still_frame"])
 
 
 if __name__ == "__main__":

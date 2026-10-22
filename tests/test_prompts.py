@@ -40,8 +40,10 @@ class PromptFilesTest(unittest.TestCase):
         text = USER_PROMPT.read_text(encoding="utf-8")
 
         required_variables = [
-            "{{gated_all_image_urls}}",
-            "{{gated_all_image_manifest}}",
+            "{{gated_video_frame_urls}}",
+            "{{gated_product_image_urls}}",
+            "{{gated_video_frame_manifest}}",
+            "{{gated_product_image_manifest}}",
             "{{final_reviewer_context}}",
             "{{evidence_gate_panel}}",
             "{{allowed_issue_types}}",
@@ -53,6 +55,8 @@ class PromptFilesTest(unittest.TestCase):
         ]
         for variable in required_variables:
             self.assertIn(variable, text)
+
+        self.assertNotIn("{{gated_all_image_urls}}", text)
 
         self.assertNotIn("{{comments}}", text)
         self.assertNotIn("{{product_review_summary}}", text)
@@ -86,6 +90,22 @@ class PromptFilesTest(unittest.TestCase):
         self.assertIn("Return raw JSON only", text)
         self.assertIn("All summaries, reasons, and evidence fields must be in Chinese", text)
         self.assertIn("Use frame_list, ASR, and OCR as primary video evidence", text)
+
+    def test_v6_3_prompt_contains_human_gt_boundaries(self):
+        system = SYSTEM_PROMPT.read_text(encoding="utf-8")
+        user = USER_PROMPT.read_text(encoding="utf-8")
+
+        for phrase in [
+            "A claim-type enum alone must never lower the MFE threshold.",
+            "5000mAh power-bank",
+            "pillow comfort",
+            "strong multi-source presenter inconsistency",
+            "contextually reasonable isolated profanity",
+            "phone screen",
+        ]:
+            self.assertIn(phrase, user)
+
+        self.assertIn("role-specific", system)
 
 
 if __name__ == "__main__":

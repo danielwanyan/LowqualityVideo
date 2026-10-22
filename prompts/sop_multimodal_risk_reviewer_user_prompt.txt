@@ -1,16 +1,30 @@
 Review this one e-commerce video for video low-quality issues.
 
-Visual input:
-{{gated_all_image_urls}}
+VIDEO FRAME INPUT — primary video evidence:
+{{gated_video_frame_urls}}
 
-Image manifest:
-{{gated_all_image_manifest}}
+VIDEO FRAME MANIFEST:
+{{gated_video_frame_manifest}}
+
+BOUND PRODUCT IMAGE INPUT — auxiliary comparison evidence:
+{{gated_product_image_urls}}
+
+BOUND PRODUCT IMAGE MANIFEST:
+{{gated_product_image_manifest}}
+
+Evidence-role rule:
+- Only VIDEO FRAME INPUT can prove what appears in the video.
+- BOUND PRODUCT IMAGE INPUT is auxiliary evidence for product comparison and for contradicting a concrete video-side MFE claim.
+- Product images cannot prove physical display in the video and cannot become the MFE claim source.
 
 Final reviewer context:
 {{final_reviewer_context}}
 
 Evidence gate panel:
 {{evidence_gate_panel}}
+
+Optional AIGC attribute panel:
+{{aigc_attribute_panel}}
 
 Allowed issue types:
 {{allowed_issue_types}}
@@ -26,71 +40,114 @@ ASR: {{ASR}}
 OCR: {{OCR}}
 country: {{country}}
 
+Visual boundary reminders:
+- still_frame requires all sampled frames to remain effectively identical. Any meaningful visual change in content, composition, angle, color, lighting, pose, hand position, product position, or product state blocks the issue. A slideshow or different-image sequence is clean.
+- disgusting_or_terrifying_visual requires strongly disturbing visuals to dominate. A cleaning demonstration and novelty or product art are clean for this issue.
+
+MFE v6.3 boundary:
+- A claim-type enum alone must never lower the MFE threshold.
+- Ordinary sales language, plausible category benefits, and user/device-dependent outcomes are clean unless there is a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim.
+- A 5000mAh power-bank claim about charging a phone twice is not a violation without a device-specific hard contradiction.
+- Common pillow comfort, posture, appearance, and neck-tension benefit language is clean unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee.
+
+Visual v6.3 boundary:
+- A phone screen, overlay, or bound-product image is not physical product display in the video.
+- Sexual/vulgar requires explicit sexual/adult language or a clear sexualized promotional hook. A contextually reasonable isolated profanity and ordinary intimate grooming or pubic-hair shaving are clean.
+- still_frame requires a concrete comparison summary across all sampled video frames.
+- A strong multi-source presenter inconsistency can support suspected reuse without a watermark only when multiple clearly different presenters plus inconsistent clothing, locations, capture quality, or filming style are present and no coherent same-creator or demonstration context explains them.
+
 Do not use display-only row fields as judgment evidence even if they exist in the source row.
 
 Required review process:
 1. Check evidence availability first.
-2. Directly inspect the image array when present. Product images appear first, followed by sampled video frames. Use the image manifest to identify each image role.
+2. Inspect both role-specific image arrays when present. Never merge their evidence roles.
 3. Use product images only as auxiliary evidence for IPP, IP, and MFE-style video judgment.
 4. Use frame_list, ASR, and OCR as primary video evidence.
 5. Apply the boundary attention and forbidden claims before deciding.
 6. Choose exactly one overall_decision: problematic or clean.
 7. If evidence is uncertain or weak, choose clean.
 8. Fill human_review_labels using the exact labels below.
-9. Return raw JSON only.
+9. Return every independently supported issue in detected_issue_types, not only primary_issue_type.
+10. Apply the canonical priority below to primary_issue_type.
+11. Return raw JSON only.
 
 Allowed overall_decision values:
 problematic
 clean
 
+Canonical issue priority, highest to lowest. There are 15 business labels: these 13 low-quality issue labels, followed by 无问题 and 视频不可见:
+1. suspected_pirated_or_reused_content
+2. misleading_functionality_or_effect
+3. unrealistic_or_continuity_error
+4. pure_marketing_pitch
+5. disgusting_or_terrifying_visual
+6. sexual_or_vulgar_hook
+7. description_not_detailed
+8. out_of_app_transaction
+9. pirated_content
+10. still_frame
+11. no_physical_product_display
+12. irrelevant_product_promotion
+13. video_product_mismatch
+14. 无问题: ratings=["ok"], tagsContent=[], primary_issue_type=none
+15. 视频不可见: tagsAttribute=["视频不可见"]; do not add it to detected_issue_types
+
+primary_issue_type must be the first issue from this list that appears in detected_issue_types. The order of labels supplied by another source is not priority evidence.
+
+AIGC scope:
+- is_aigc is optional and only numeric 0 or 1 is valid.
+- is_aigc=1 is required but not sufficient for unrealistic_or_continuity_error; concrete visual abnormality evidence is also required.
+- is_aigc=0, missing, or invalid blocks unrealistic_or_continuity_error.
+- Never use is_aigc as evidence for suspected_pirated_or_reused_content, pirated_content, misleading_functionality_or_effect, or any other issue.
+
 Allowed primary_issue_type values:
-video_product_mismatch
-misleading_functionality_or_effect
 suspected_pirated_or_reused_content
-pure_marketing_pitch
-no_physical_product_display
-irrelevant_product_promotion
+misleading_functionality_or_effect
 unrealistic_or_continuity_error
-sexual_or_vulgar_hook
+pure_marketing_pitch
 disgusting_or_terrifying_visual
-pirated_content
+sexual_or_vulgar_hook
 description_not_detailed
 out_of_app_transaction
+pirated_content
 still_frame
+no_physical_product_display
+irrelevant_product_promotion
+video_product_mismatch
 none
 
 Allowed tagsContent values:
-挂车商品与讲解商品不一致
-功能效果虚假夸大
 疑似盗版 / 疑似盗剪
-仅营销叫卖
-无实物展示（围绕商品讲解）
-内容与商品无关推广
+功能效果虚假夸大
 穿帮 / 不符现实
-擦边低俗
+仅营销叫卖
 恶心恐怖
-盗版内容
+擦边低俗
 内容介绍不详细（低质）
 站外引流交易
+盗版内容
 静止帧
+无实物展示（围绕商品讲解）
+内容与商品无关推广
+挂车商品与讲解商品不一致
 
 Allowed tagsAttribute values:
 视频不可见
 
 Mapping:
-video_product_mismatch -> 挂车商品与讲解商品不一致
-misleading_functionality_or_effect -> 功能效果虚假夸大
 suspected_pirated_or_reused_content -> 疑似盗版 / 疑似盗剪
-pure_marketing_pitch -> 仅营销叫卖
-no_physical_product_display -> 无实物展示（围绕商品讲解）
-irrelevant_product_promotion -> 内容与商品无关推广
+misleading_functionality_or_effect -> 功能效果虚假夸大
 unrealistic_or_continuity_error -> 穿帮 / 不符现实
-sexual_or_vulgar_hook -> 擦边低俗
+pure_marketing_pitch -> 仅营销叫卖
 disgusting_or_terrifying_visual -> 恶心恐怖
-pirated_content -> 盗版内容
+sexual_or_vulgar_hook -> 擦边低俗
 description_not_detailed -> 内容介绍不详细（低质）
 out_of_app_transaction -> 站外引流交易
+pirated_content -> 盗版内容
 still_frame -> 静止帧
+no_physical_product_display -> 无实物展示（围绕商品讲解）
+irrelevant_product_promotion -> 内容与商品无关推广
+video_product_mismatch -> 挂车商品与讲解商品不一致
 none -> no tagsContent
 
 Output JSON schema:
