@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.3
+LowqualityVideo Rules v6.4 regression hardening
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -53,6 +53,7 @@ Hit when video frames or ASR/OCR clearly promote or explain a main product that 
 Do not hit for color-only differences, minor style/material/texture differences, lighting, angle, packaging language, ordinary brand-text differences, functional words printed on a product such as MUSIC SOUND, or a brief prop/background item. Do not use brand text, OCR text, product-page wording, or package language alone as IPP evidence unless the video is clearly promoting a different physical product.
 Do not hit ordinary model variation when category, core function, core structure, quantity, visible dimension, and promised use remain compatible.
 Do not hit merely because the video shows more units than one product image when the sold set can include those units.
+A single-drawer appliance versus a dual-drawer bound product is a core structure/function mismatch. A solid fleece panel versus a mesh breathing panel is a core functional-component mismatch, not minor styling.
 
 Rule V2: misleading_functionality_or_effect / 功能效果虚假夸大
 Hit when frame_list, ASR, or OCR makes a concrete misleading claim about efficacy, speed, durability, medical or health effect, quantity, time, before/after result, safety, or physical capability. The claim must be supported by frame_list, ASR, or OCR from the video itself; product images are auxiliary only.
@@ -63,18 +64,19 @@ If the video claim is consistent with the bound product and is not materially mo
 A claim-type enum alone never lowers the MFE threshold. Ordinary sales language, plausible category benefit, and user/device-dependent outcomes are clean unless there is a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim.
 A 5000mAh power-bank claim about charging a phone twice is clean when the exact phone battery, charging conditions, and a device-specific hard contradiction are not established.
 Common pillow comfort, posture, facial-appearance, and neck-tension benefit language is clean unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee.
+Generalize the medical boundary to explicit prevention or elimination of any disease or health condition. Claims that a product prevents bladder inflammation or brain disease, or guarantees that bacteria do not form, are medical or safety outcome claims; do not restrict this rule to named grooming conditions.
 
 Rule V3: suspected_pirated_or_reused_content / 疑似盗版 / 疑似盗剪
 Hit when the video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI/environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.
 Do not hit for replying to a user comment, showing another creator briefly and then self-verifying, proof-style self-comparison, product validation, debunking content, same creator appearing in different scenes, generic blurry footage, simple edits, style shifts, ordinary b-roll, or a transition from introductory scenery/lifestyle footage into a substantive product demonstration without a concrete copied/reused-content signal.
 A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change. Ordinary b-roll or a scene transition alone is clean.
-A strong multi-source presenter inconsistency can pass without a watermark when sampled video frames show multiple clearly different presenters together with inconsistent clothing, locations, capture quality, or filming style and no coherent same-creator, comparison, reply, or demonstration context.
-Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, and coherent product demonstrations are clean and block the strong multi-source presenter path.
+Different presenters, scenes, clothing, locations, capture quality, or filming style are supporting context only and cannot pass without source-authenticity or hard reuse evidence.
+Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, coherent product demonstrations, and a product-dependent illustrative clip are clean without source-authenticity or hard reuse evidence.
 is_aigc is not piracy evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
 Hit only when nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure, with almost no product function, material, size, use scenario, operation method, or realistic product information.
-Weak but real product information should usually prevent this hit. Do not hit when the video provides substantive product features, material, size, usage, softness/comfort, compatibility, operation, or scenario information, even if it also contains buying guidance. Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.
+Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit. Only real use, coherent demonstration, functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison counts as blocking substantive information. Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.
 Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless it is only a token moment and marketing pressure still dominates nearly the whole video.
 
 Rule V5: no_physical_product_display / 无实物展示（围绕商品讲解）
@@ -101,6 +103,7 @@ If uncertain, choose clean.
 
 Rule V8: sexual_or_vulgar_hook / 擦边低俗
 Hit when the video uses a clear sexualized hook, vulgar, adult, dating, or sexual reward hook for promotion, including phrases such as spend the night with me.
+Crude genital language used as a sales hook and a visible middle-finger product punchline qualify even when MFE or another issue is also present.
 Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display without clear vulgar/adult framing.
 Do not hit a contextually reasonable isolated profanity that is not the promotional hook.
 Do not hit ordinary intimate grooming or pubic-hair shaving without sexualized promotional framing.
@@ -123,8 +126,8 @@ Do not hit when visual demonstration itself provides enough product information.
 A clearly identifiable product name and package that communicate the core product purpose count as meaningful product information, including for supplements or health products. Do not require ingredients, mechanism, dosage, or detailed efficacy when the product name and package already make the basic product and purpose clear.
 
 Rule V12: out_of_app_transaction / 站外引流交易
-Hit when the video clearly instructs users to transact or contact outside the platform using an external website, QR code, off-platform channel, or external transaction instruction.
-Do not hit TikTok in-app purchase guidance.
+Hit only when the video names an explicit external destination, external website, external-platform QR code, off-platform contact path, or external payment instruction.
+Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.
 Do not hit private-message requests by themselves.
 
 Rule V13: still_frame / 静止帧

@@ -52,7 +52,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-10-22-v6.3-human-gt-dual-vision")
+        self.assertEqual(data["version"], "2026-10-26-v6.4-regression-hardening")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
@@ -106,7 +106,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v6.3", text)
+        self.assertIn("LowqualityVideo Rules v6.4", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
         self.assertNotIn("author_id", text)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-10-22-v6.3-human-gt-dual-vision")
+        self.assertEqual(data["version"], "2026-10-26-v6.4-regression-hardening")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -165,6 +165,34 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("slideshow", by_type["still_frame"])
         self.assertNotIn("static-image sequence, slideshow, or several frozen-image segments can also qualify", by_type["still_frame"])
 
+    def test_v6_4_regression_boundaries_are_encoded(self):
+        data = self.load_rules()
+        by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
+        text = TEXT_RULES.read_text(encoding="utf-8").lower()
+
+        for source in (by_type["out_of_app_transaction"], text):
+            self.assertIn("explicit external destination", source)
+            self.assertIn("tiktok shop", source)
+            self.assertIn("orange cart", source)
+        for source in (by_type["suspected_pirated_or_reused_content"], text):
+            self.assertIn("product-dependent illustrative clip", source)
+            self.assertIn("source-authenticity", source)
+            self.assertIn("presenter", source)
+        for source in (by_type["pure_marketing_pitch"], text):
+            self.assertIn("product name", source)
+            self.assertIn("prize", source)
+            self.assertIn("functional explanation", source)
+        for source in (by_type["misleading_functionality_or_effect"], text):
+            self.assertIn("disease or health condition", source)
+            self.assertIn("bladder inflammation", source)
+            self.assertIn("bacteria do not form", source)
+        for source in (by_type["video_product_mismatch"], text):
+            self.assertIn("single-drawer", source)
+            self.assertIn("mesh breathing panel", source)
+        for source in (by_type["sexual_or_vulgar_hook"], text):
+            self.assertIn("crude genital", source)
+            self.assertIn("middle-finger", source)
+
     def test_v6_3_human_gt_boundaries_are_encoded(self):
         data = self.load_rules()
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
@@ -184,7 +212,8 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("pillow", text)
         self.assertIn("contextually reasonable isolated profanity", by_type["sexual_or_vulgar_hook"])
         self.assertIn("intimate grooming", by_type["sexual_or_vulgar_hook"])
-        self.assertIn("strong multi-source presenter", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("presenters", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("cannot pass without source-authenticity", by_type["suspected_pirated_or_reused_content"])
         self.assertIn("phone screen", by_type["no_physical_product_display"])
         self.assertIn("ordinary model variation", by_type["video_product_mismatch"])
         self.assertIn("frame change summary", by_type["still_frame"])

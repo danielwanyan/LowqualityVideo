@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-22-v6.3-human-gt-dual-vision",
+  "version": "2026-10-26-v6.4-regression-hardening",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -82,7 +82,8 @@
       "label": "挂车商品与讲解商品不一致",
       "triggers": [
         "Video frames or ASR/OCR clearly promote or explain a main product that conflicts with product images in core category, function, form, visible quantity, key specification, size, dimension, or promised use. Same product style does not clear a material size or dimension contradiction.",
-        "Product images visibly promise a product type, quantity, size, form, or function, and the video promotes a materially different product."
+        "Product images visibly promise a product type, quantity, size, form, or function, and the video promotes a materially different product.",
+        "A single-drawer appliance versus a dual-drawer bound product, or a solid fleece panel versus a mesh breathing panel, is a core structure or function mismatch rather than minor styling."
       ],
       "false_positive_boundaries": [
         "Do not hit for color-only differences.",
@@ -105,7 +106,8 @@
       "triggers": [
         "Video frames, ASR, or OCR make a concrete misleading claim about efficacy, speed, durability, medical or health effect, quantity, time, before/after result, safety, or physical capability.",
         "The claim must be supported by frame_list, ASR, or OCR from the video itself; product images are auxiliary only.",
-        "The video demonstration visually implies a product effect that is physically impossible or materially misleading to consumers."
+        "The video demonstration visually implies a product effect that is physically impossible or materially misleading to consumers.",
+        "An explicit claim that a product prevents or eliminates a disease or health condition, such as bladder inflammation or brain disease, or guarantees that bacteria do not form, is a medical or safety outcome claim."
       ],
       "false_positive_boundaries": [
         "Do not hit from product images alone.",
@@ -115,7 +117,8 @@
         "Minor numerical ambiguity that can reasonably be ordinary speech error is not enough.",
         "A concrete claim is not automatically misleading. It must be materially stronger than the bound product or contradicted by concrete product evidence, or the demonstrated effect must be physically impossible.",
         "Do not hit for vague metaphors, ordinary category effects, routine marketing language, or one-off ordinary speech error when there is no material consumer deception.",
-        "If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong."
+        "If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong.",
+        "Do not restrict disease or health condition prevention and elimination review to named grooming phrases."
         ,"Ordinary sales language, plausible category benefits, and user/device-dependent outcomes are clean without a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim."
         ,"A 5000mAh power-bank claim about charging a phone twice is clean when no exact phone battery, charging conditions, or device-specific hard contradiction is established."
         ,"Common pillow comfort, posture, facial-appearance, and neck-tension benefit language is a plausible category benefit unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee."
@@ -133,7 +136,6 @@
       "triggers": [
         "The video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI or environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.",
         "The video has a clear piracy or reposting pattern that affects authenticity of the e-commerce promotion."
-        ,"A strong multi-source presenter inconsistency can qualify without a watermark when multiple clearly different presenters appear with inconsistent clothing, locations, capture quality, or filming style and no coherent same-creator or demonstration explanation exists."
       ],
       "false_positive_boundaries": [
         "Do not hit for replying to a user comment.",
@@ -143,13 +145,14 @@
         "Do not hit for generic blurry footage, simple edits, style shifts, ordinary b-roll, or a scene transition without a concrete copied/reused-content signal.",
         "A transition from introductory scenery or lifestyle b-roll into a substantive product demonstration is not piracy or reuse by itself.",
         "A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change.",
-        "Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, and coherent product demonstrations are clean and block the strong multi-source presenter path.",
+        "Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, coherent product demonstrations, and a product-dependent illustrative clip are clean without source-authenticity or hard reuse evidence.",
+        "Different presenters, scenes, clothing, locations, capture quality, or filming style are supporting context only and cannot pass without source-authenticity or hard reuse evidence.",
         "is_aigc is not piracy evidence. Never use is_aigc=1 to support suspected piracy or reuse."
       ],
       "required_evidence": [
         "specific visual or textual piracy/reuse signal",
         "for a regular Tier B hit, a concrete source-authenticity signal rather than ordinary b-roll or scene transition alone",
-        "for the no-watermark exception, concrete cross-frame evidence of a strong multi-source presenter inconsistency"
+        "concrete source-authenticity or hard reuse evidence; presenter, scene, and style differences alone are insufficient"
       ]
     },
     {
@@ -161,8 +164,8 @@
         "The video contains almost no product function, material, size, use scenario, operation method, or realistic product information."
       ],
       "false_positive_boundaries": [
-        "Weak but real product information should usually prevent this hit.",
-        "Do not hit when the video provides substantive product features, material, size, usage, softness/comfort, compatibility, operation, or scenario information, even if it also contains buying guidance.",
+        "Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.",
+        "Do not hit when the video provides real use, a coherent demonstration, functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison, even if it also contains buying guidance.",
         "Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.",
         "Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless the use is only a token moment and marketing pressure still dominates nearly the whole video."
       ],
@@ -235,7 +238,7 @@
       "issue_type": "sexual_or_vulgar_hook",
       "label": "擦边低俗",
       "triggers": [
-        "The video uses explicit sexual or adult language or a clear sexualized, dating, or sexual-reward hook for promotion, including phrases such as spend the night with me."
+        "The video uses explicit sexual or adult language, crude genital language as a sales hook, a visible middle-finger product punchline, or a clear sexualized, dating, or sexual-reward hook for promotion, including phrases such as spend the night with me."
       ],
       "false_positive_boundaries": [
         "Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display without clear vulgar/adult framing.",
@@ -302,14 +305,14 @@
       "issue_type": "out_of_app_transaction",
       "label": "站外引流交易",
       "triggers": [
-        "The video clearly instructs users to transact or contact outside the platform using an external website, QR code, off-platform channel, or external transaction instruction."
+        "The video clearly instructs users to transact or contact outside the platform using an explicit external destination, external website, external-platform QR code, off-platform contact channel, or external payment instruction."
       ],
       "false_positive_boundaries": [
-        "Do not hit TikTok in-app purchase guidance.",
+        "Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.",
         "Do not hit private-message requests by themselves."
       ],
       "required_evidence": [
-        "ASR, OCR, or frame evidence of external transaction path"
+        "ASR, OCR, or frame evidence naming the explicit external destination, external contact path, or external payment path"
       ]
     },
     {
