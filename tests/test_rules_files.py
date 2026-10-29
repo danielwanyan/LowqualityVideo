@@ -52,12 +52,12 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-10-26-v6.4-regression-hardening")
+        self.assertEqual(data["version"], "2026-10-29-v6.5-cross-border-inventory")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
         self.assertEqual(data["business_label_priority"], [
-            "疑似盗版 / 疑似盗剪", "功能效果虚假夸大", "穿帮 / 不符现实", "仅营销叫卖",
+            "跨境货盘", "功能效果虚假夸大", "穿帮 / 不符现实", "仅营销叫卖",
             "恶心恐怖", "擦边低俗", "内容介绍不详细（低质）", "站外引流交易",
             "盗版内容", "静止帧", "无实物展示（围绕商品讲解）", "内容与商品无关推广",
             "挂车商品与讲解商品不一致", "无问题", "视频不可见",
@@ -106,7 +106,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v6.4", text)
+        self.assertIn("LowqualityVideo Rules v6.5 cross-border inventory", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
         self.assertNotIn("author_id", text)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-10-26-v6.4-regression-hardening")
+        self.assertEqual(data["version"], "2026-10-29-v6.5-cross-border-inventory")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -151,9 +151,9 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("visible package", by_type["no_physical_product_display"])
         self.assertIn("approximately one third", by_type["irrelevant_product_promotion"])
         self.assertIn("is_aigc=1 is required", by_type["unrealistic_or_continuity_error"])
-        self.assertIn("is_aigc is not piracy evidence", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("is_aigc is not cross-border inventory evidence", by_type["suspected_pirated_or_reused_content"])
         self.assertIn("ordinary b-roll", by_type["suspected_pirated_or_reused_content"])
-        self.assertIn("source-authenticity", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("explicit exemption audit", by_type["suspected_pirated_or_reused_content"])
         self.assertIn("irrelevant_product_promotion", by_type["no_physical_product_display"])
         self.assertIn("finger", by_type["unrealistic_or_continuity_error"])
         self.assertIn("viscous", by_type["disgusting_or_terrifying_visual"])
@@ -175,9 +175,10 @@ class LowqualityVideoRulesTest(unittest.TestCase):
             self.assertIn("tiktok shop", source)
             self.assertIn("orange cart", source)
         for source in (by_type["suspected_pirated_or_reused_content"], text):
-            self.assertIn("product-dependent illustrative clip", source)
-            self.assertIn("source-authenticity", source)
-            self.assertIn("presenter", source)
+            self.assertIn("hand-only east-asian cue", source)
+            self.assertIn("sandwich layout", source)
+            self.assertIn("three visual-style jumps", source)
+            self.assertIn("hard exemptions", source)
         for source in (by_type["pure_marketing_pitch"], text):
             self.assertIn("product name", source)
             self.assertIn("prize", source)
@@ -212,8 +213,8 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("pillow", text)
         self.assertIn("contextually reasonable isolated profanity", by_type["sexual_or_vulgar_hook"])
         self.assertIn("intimate grooming", by_type["sexual_or_vulgar_hook"])
-        self.assertIn("presenters", by_type["suspected_pirated_or_reused_content"])
-        self.assertIn("cannot pass without source-authenticity", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("hand-only east-asian cue", by_type["suspected_pirated_or_reused_content"])
+        self.assertIn("three visual-style jumps", by_type["suspected_pirated_or_reused_content"])
         self.assertIn("phone screen", by_type["no_physical_product_display"])
         self.assertIn("ordinary model variation", by_type["video_product_mismatch"])
         self.assertIn("frame change summary", by_type["still_frame"])

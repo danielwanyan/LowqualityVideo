@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.4 regression hardening
+LowqualityVideo Rules v6.5 cross-border inventory
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -66,13 +66,13 @@ A 5000mAh power-bank claim about charging a phone twice is clean when the exact 
 Common pillow comfort, posture, facial-appearance, and neck-tension benefit language is clean unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee.
 Generalize the medical boundary to explicit prevention or elimination of any disease or health condition. Claims that a product prevents bladder inflammation or brain disease, or guarantees that bacteria do not form, are medical or safety outcome claims; do not restrict this rule to named grooming conditions.
 
-Rule V3: suspected_pirated_or_reused_content / 疑似盗版 / 疑似盗剪
-Hit when the video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI/environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.
-Do not hit for replying to a user comment, showing another creator briefly and then self-verifying, proof-style self-comparison, product validation, debunking content, same creator appearing in different scenes, generic blurry footage, simple edits, style shifts, ordinary b-roll, or a transition from introductory scenery/lifestyle footage into a substantive product demonstration without a concrete copied/reused-content signal.
-A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change. Ordinary b-roll or a scene transition alone is clean.
-Different presenters, scenes, clothing, locations, capture quality, or filming style are supporting context only and cannot pass without source-authenticity or hard reuse evidence.
-Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, coherent product demonstrations, and a product-dependent illustrative clip are clean without source-authenticity or hard reuse evidence.
-is_aigc is not piracy evidence and must never support this label.
+Rule V3: suspected_pirated_or_reused_content / 跨境货盘
+This internal issue id is retained only for workflow compatibility. The outward business label and current meaning are 跨境货盘: China-origin e-commerce footage distributed to a non-China EU target market.
+Direct strong signals are a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.
+Without a direct strong signal, require at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features. Do not hit from cut count alone.
+An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator. Ordinary clean EU studio footage alone is clean.
+Hard exemptions remain: replying to a user or fan comment; showing another creator briefly and then self-verifying; proof-style comparison, validation, or debunking; the same creator changing scenes; ordinary b-roll or normal transitions; and a coherent real product demonstration.
+is_aigc is not cross-border inventory evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
 Hit only when nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure, with almost no product function, material, size, use scenario, operation method, or realistic product information.

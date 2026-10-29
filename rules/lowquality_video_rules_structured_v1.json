@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-26-v6.4-regression-hardening",
+  "version": "2026-10-29-v6.5-cross-border-inventory",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -7,7 +7,7 @@
     "clean"
   ],
   "business_label_priority": [
-    "疑似盗版 / 疑似盗剪",
+    "跨境货盘",
     "功能效果虚假夸大",
     "穿帮 / 不符现实",
     "仅营销叫卖",
@@ -132,27 +132,27 @@
     {
       "id": "V3",
       "issue_type": "suspected_pirated_or_reused_content",
-      "label": "疑似盗版 / 疑似盗剪",
+      "label": "跨境货盘",
       "triggers": [
-        "The video strongly suggests reused or pirated content, such as Chinese domestic studio recording cues, Chinese UI or environment not fitting the target market, blurry reposted footage, watermark-hiding layout, or obvious unrelated creator/content reuse.",
-        "The video has a clear piracy or reposting pattern that affects authenticity of the e-commerce promotion."
+        "The video shows China-origin e-commerce footage distributed to a non-China EU target market. Direct strong signals include a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.",
+        "Without a direct strong signal, a composite path requires at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features.",
+        "An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator."
       ],
       "false_positive_boundaries": [
         "Do not hit for replying to a user comment.",
         "Do not hit for showing another creator briefly and then self-verifying the product.",
         "Do not hit for proof-style self-comparison, product validation, or debunking content.",
         "Do not hit only because the same creator appears in different scenes.",
-        "Do not hit for generic blurry footage, simple edits, style shifts, ordinary b-roll, or a scene transition without a concrete copied/reused-content signal.",
-        "A transition from introductory scenery or lifestyle b-roll into a substantive product demonstration is not piracy or reuse by itself.",
-        "A Tier B suspected-reuse hit requires a concrete source-authenticity signal beyond scene, environment, style, or packaging-language change.",
-        "Ordinary b-roll, one creator changing scenes, coherent comparisons, reply videos, coherent product demonstrations, and a product-dependent illustrative clip are clean without source-authenticity or hard reuse evidence.",
-        "Different presenters, scenes, clothing, locations, capture quality, or filming style are supporting context only and cannot pass without source-authenticity or hard reuse evidence.",
-        "is_aigc is not piracy evidence. Never use is_aigc=1 to support suspected piracy or reuse."
+        "Do not hit for ordinary b-roll, normal editing, an ordinary scene transition, or a coherent real product demonstration.",
+        "Do not hit for an ordinary clean studio setup without an independent China-origin, presenter, or cross-border editing corroborator.",
+        "The approved hard exemptions are replying to a user or fan comment, showing another creator briefly and then self-verifying, proof-style comparison/validation/debunking, the same creator changing scenes, ordinary b-roll or a normal transition, and a coherent real product demonstration.",
+        "The approved hard exemptions cannot be overridden by weak or composite signals.",
+        "is_aigc is not cross-border inventory evidence. Never use is_aigc=1 to support this label."
       ],
       "required_evidence": [
-        "specific visual or textual piracy/reuse signal",
-        "for a regular Tier B hit, a concrete source-authenticity signal rather than ordinary b-roll or scene transition alone",
-        "concrete source-authenticity or hard reuse evidence; presenter, scene, and style differences alone are insufficient"
+        "a specific direct strong signal, the complete three-jump plus discontinuity plus two-feature composite path, or corroborated overly-clean studio evidence",
+        "explicit exemption audit",
+        "frame-level explanation of why the footage is China-origin e-commerce material distributed to an EU target market"
       ]
     },
     {
@@ -338,7 +338,7 @@
   "label_mapping": {
     "video_product_mismatch": "挂车商品与讲解商品不一致",
     "misleading_functionality_or_effect": "功能效果虚假夸大",
-    "suspected_pirated_or_reused_content": "疑似盗版 / 疑似盗剪",
+    "suspected_pirated_or_reused_content": "跨境货盘",
     "pure_marketing_pitch": "仅营销叫卖",
     "no_physical_product_display": "无实物展示（围绕商品讲解）",
     "irrelevant_product_promotion": "内容与商品无关推广",
