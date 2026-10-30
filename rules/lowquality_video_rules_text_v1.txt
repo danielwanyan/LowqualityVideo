@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.5 cross-border inventory
+LowqualityVideo Rules v6.6 cross-border direct precedence
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -71,7 +71,8 @@ This internal issue id is retained only for workflow compatibility. The outward 
 Direct strong signals are a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.
 Without a direct strong signal, require at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features. Do not hit from cut count alone.
 An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator. Ordinary clean EU studio footage alone is clean.
-Hard exemptions remain: replying to a user or fan comment; showing another creator briefly and then self-verifying; proof-style comparison, validation, or debunking; the same creator changing scenes; ordinary b-roll or normal transitions; and a coherent real product demonstration.
+Hard exemptions remain: replying to a user or fan comment; showing another creator briefly and then self-verifying; and proof-style comparison, validation, or debunking.
+The same creator changing scenes, ordinary b-roll or normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak or composite inference, but must not override a verified direct strong signal.
 is_aigc is not cross-border inventory evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖

@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-29-v6.5-cross-border-inventory",
+  "version": "2026-10-30-v6.6-cross-border-direct-precedence",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -142,11 +142,11 @@
         "Do not hit for replying to a user comment.",
         "Do not hit for showing another creator briefly and then self-verifying the product.",
         "Do not hit for proof-style self-comparison, product validation, or debunking content.",
-        "Do not hit only because the same creator appears in different scenes.",
-        "Do not hit for ordinary b-roll, normal editing, an ordinary scene transition, or a coherent real product demonstration.",
+        "Do not hit only because the same creator appears in different scenes; this contextual editing exemption blocks weak or composite inference but must not override a verified direct strong signal.",
+        "Ordinary b-roll, normal editing, an ordinary scene transition, or a coherent real product demonstration blocks weak or composite inference but must not override a verified direct strong signal.",
         "Do not hit for an ordinary clean studio setup without an independent China-origin, presenter, or cross-border editing corroborator.",
-        "The approved hard exemptions are replying to a user or fan comment, showing another creator briefly and then self-verifying, proof-style comparison/validation/debunking, the same creator changing scenes, ordinary b-roll or a normal transition, and a coherent real product demonstration.",
-        "The approved hard exemptions cannot be overridden by weak or composite signals.",
+        "The approved hard exemptions are replying to a user or fan comment and showing another creator briefly before self-verification or proof-style comparison/validation/debunking.",
+        "Same-creator scene changes, ordinary b-roll/normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak or composite signals, but must not override a verified direct strong signal.",
         "is_aigc is not cross-border inventory evidence. Never use is_aigc=1 to support this label."
       ],
       "required_evidence": [

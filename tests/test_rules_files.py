@@ -52,7 +52,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-10-29-v6.5-cross-border-inventory")
+        self.assertEqual(data["version"], "2026-10-30-v6.6-cross-border-direct-precedence")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
@@ -106,7 +106,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v6.5 cross-border inventory", text)
+        self.assertIn("LowqualityVideo Rules v6.6 cross-border direct precedence", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
         self.assertNotIn("author_id", text)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-10-29-v6.5-cross-border-inventory")
+        self.assertEqual(data["version"], "2026-10-30-v6.6-cross-border-direct-precedence")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -179,6 +179,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
             self.assertIn("sandwich layout", source)
             self.assertIn("three visual-style jumps", source)
             self.assertIn("hard exemptions", source)
+            self.assertIn("must not override a verified direct strong signal", source)
         for source in (by_type["pure_marketing_pitch"], text):
             self.assertIn("product name", source)
             self.assertIn("prize", source)
