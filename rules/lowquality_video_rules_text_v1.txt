@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.6 cross-border direct precedence
+LowqualityVideo Rules v6.7 cross-border frame audit
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -68,6 +68,7 @@ Generalize the medical boundary to explicit prevention or elimination of any dis
 
 Rule V3: suspected_pirated_or_reused_content / 跨境货盘
 This internal issue id is retained only for workflow compatibility. The outward business label and current meaning are 跨境货盘: China-origin e-commerce footage distributed to a non-China EU target market.
+Before the final judgment, produce one frame_direct_signal_audit row for every sampled video frame and inspect the complete frame, borders, background, faces, visible hands/forearms, and sandwich or blurred-fill composition.
 Direct strong signals are a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.
 Without a direct strong signal, require at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features. Do not hit from cut count alone.
 An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator. Ordinary clean EU studio footage alone is clean.

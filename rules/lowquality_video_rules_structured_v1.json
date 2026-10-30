@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-30-v6.6-cross-border-direct-precedence",
+  "version": "2026-10-30-v6.7-cross-border-frame-audit",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -150,6 +150,7 @@
         "is_aigc is not cross-border inventory evidence. Never use is_aigc=1 to support this label."
       ],
       "required_evidence": [
+        "a frame_direct_signal_audit row for every sampled video frame, covering full-frame borders/background, face, visible hands/forearms, and sandwich or blurred-fill composition",
         "a specific direct strong signal, the complete three-jump plus discontinuity plus two-feature composite path, or corroborated overly-clean studio evidence",
         "explicit exemption audit",
         "frame-level explanation of why the footage is China-origin e-commerce material distributed to an EU target market"
