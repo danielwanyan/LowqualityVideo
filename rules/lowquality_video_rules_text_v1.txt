@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.7 cross-border frame audit
+LowqualityVideo Rules v6.9 170-human-GT
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -78,8 +78,9 @@ is_aigc is not cross-border inventory evidence and must never support this label
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
 Hit only when nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure, with almost no product function, material, size, use scenario, operation method, or realistic product information.
-Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit. Only real use, coherent demonstration, functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison counts as blocking substantive information. Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.
-Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless it is only a token moment and marketing pressure still dominates nearly the whole video.
+ASR/OCR is the authoritative evidence surface for this issue. Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.
+Visual demonstration does not automatically block pure marketing. Real product use, wearing, unboxing, operating, applying, assembling, or other visual use blocks only when ASR/OCR itself communicates a functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison.
+Concrete information such as 40 pages, a counting activity, and a calm creative-leisure use case is substantive and blocks the hit. Price, discount, urgency, stock, coupon, or CTA language without such ASR/OCR product information remains pure marketing even when the product is visible or briefly demonstrated.
 
 Rule V5: no_physical_product_display / 无实物展示（围绕商品讲解）
 Hit when the video talks about or promotes the product but does not show the physical product or a substantive product-use scene.
@@ -128,16 +129,16 @@ Do not hit when visual demonstration itself provides enough product information.
 A clearly identifiable product name and package that communicate the core product purpose count as meaningful product information, including for supplements or health products. Do not require ingredients, mechanism, dosage, or detailed efficacy when the product name and package already make the basic product and purpose clear.
 
 Rule V12: out_of_app_transaction / 站外引流交易
-Hit only when the video names an explicit external destination, external website, external-platform QR code, off-platform contact path, or external payment instruction.
+Hit only when the video provides an explicit external destination with an actionable external locator: a concrete domain or URL, external account, phone number, external-platform QR code, or external payment instruction.
+Do not hit a generic mention such as our website, visit the website, or contact us when no actionable locator is visible or spoken.
 Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.
 Do not hit private-message requests by themselves.
 
 Rule V13: still_frame / 静止帧
-Hit only when all sampled frames are effectively identical in content, composition, angle, color, lighting, pose, hand position, product position, and product state, with concrete all-frame evidence of no meaningful visual change.
-Require a non-empty frame change summary covering all sampled video frames and exclude bound-product images from the still-frame comparison.
-Do not hit when any content, composition, camera angle, color, lighting, pose, hand position, product position, or product-state change is visible.
-Do not hit a slideshow, PPT-style presentation, or sequence of different still images. Switching between different images is visual change.
-If sparse sampling cannot prove that the full video remains visually identical, choose clean.
+Hit when the dominant subject, poster, PPT/card layout, composition, or sellable content remains static across the sampled video frames. Require a non-empty frame change summary covering all sampled frames and exclude bound-product images from the comparison.
+Text visibility, filters, flashing, blur, minor overlay motion, small crop, reflection, or border changes do not block the issue when the dominant subject and layout stay static.
+Block only meaningful subject action, product-state or use-step change, scene change, camera/composition change, meaningful angle shift or lighting shift, or other continuous motion that changes the substantive visual content.
+An unknown sampling interval does not clear an otherwise static sampled presentation. Judge only the available video-frame evidence and explain whether the observed change is minor overlay motion or meaningful subject/scene motion.
 
 Output requirements
 Return raw JSON only in the project schema.

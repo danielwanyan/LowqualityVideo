@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-30-v6.7-cross-border-frame-audit",
+  "version": "2026-11-02-v6.9-170-human-gt",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -165,10 +165,11 @@
         "The video contains almost no product function, material, size, use scenario, operation method, or realistic product information."
       ],
       "false_positive_boundaries": [
+        "ASR/OCR is the authoritative evidence surface for pure_marketing_pitch.",
         "Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.",
-        "Do not hit when the video provides real use, a coherent demonstration, functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison, even if it also contains buying guidance.",
-        "Do not hit from price, discount, urgency, or purchase CTA alone when visual demonstration provides meaningful product information.",
-        "Visible wearing, trying on, operating, applying, assembling, or other real product use is substantive product content and blocks this label unless the use is only a token moment and marketing pressure still dominates nearly the whole video."
+        "Visual demonstration does not automatically block pure marketing; real product use, wearing, unboxing, operating, applying, or assembling blocks only when ASR/OCR communicates concrete product information.",
+        "A functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison in ASR/OCR blocks the hit.",
+        "Information such as 40 pages, a counting activity, and a calm creative-leisure use case is substantive and blocks the hit."
       ],
       "required_evidence": [
         "ASR or OCR evidence showing near-total marketing pitch"
@@ -306,9 +307,10 @@
       "issue_type": "out_of_app_transaction",
       "label": "站外引流交易",
       "triggers": [
-        "The video clearly instructs users to transact or contact outside the platform using an explicit external destination, external website, external-platform QR code, off-platform contact channel, or external payment instruction."
+        "The video provides an explicit external destination with an actionable external locator: a concrete domain or URL, external account, phone number, external-platform QR code, or external payment instruction."
       ],
       "false_positive_boundaries": [
+        "Do not hit a generic mention such as our website, visit the website, or contact us when no actionable locator is visible or spoken.",
         "Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.",
         "Do not hit private-message requests by themselves."
       ],
@@ -321,17 +323,17 @@
       "issue_type": "still_frame",
       "label": "静止帧",
       "triggers": [
-        "All sampled frames are effectively identical in content, composition, angle, color, lighting, pose, hand position, product position, and product state.",
-        "The all-frame comparison finds no meaningful visual change and sparse sampling still provides concrete evidence that the video remains immobile."
+        "The dominant subject, poster, PPT/card layout, composition, or sellable content remains static across the sampled video frames.",
+        "Text visibility, filters, flashing, blur, minor overlay motion, small crop, reflection, or border changes may coexist with a still-frame hit when the dominant subject and layout stay static."
       ],
       "false_positive_boundaries": [
-        "Do not hit when frames show any meaningful visual change, including content shift, composition shift, camera angle shift, color shift, lighting shift, pose shift, hand position, product position, or product-state change.",
+        "Block when frames show meaningful subject action, product-state or use-step change, scene change, camera/composition change, meaningful angle shift or lighting shift, or continuous motion that changes substantive visual content.",
         "Do not hit merely because ASR/OCR is weak or absent when frames show clear product use or changing visual evidence.",
-        "Do not hit a slideshow, PPT-style presentation, or sequence of different still images; switching between different images is visual change.",
-        "If sparse sampling cannot prove that the full video remains visually identical, choose clean."
+        "An unknown sampling interval does not clear an otherwise static sampled presentation; judge the available video-frame evidence.",
+        "Distinguish minor overlay motion from meaningful subject or scene motion."
       ],
       "required_evidence": [
-        "concrete all-sampled-frame comparison evidence proving effective identity and no meaningful visual change",
+        "concrete all-sampled-frame comparison evidence describing the static dominant subject/layout and any minor overlay motion",
         "a non-empty frame change summary covering all sampled video frames and excluding bound-product images"
       ]
     }
