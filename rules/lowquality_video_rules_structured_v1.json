@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-05-v7.0-600-human-gt-candidate",
+  "version": "2026-11-05-v7.1-600-human-gt-candidate",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -138,6 +138,7 @@
       "label": "跨境货盘",
       "triggers": [
         "The video shows China-origin e-commerce footage distributed to a non-China EU target market. Hard direct signals are limited to a real Chinese plate/domestic UI/local environment or a strict source clip with true top/bottom fill. East-Asian face/hand cues are supporting evidence only.",
+        "A narrow faceless supplier-style hand path may pass only when the same hand or forearm cue is corroborated in at least three sampled frames, faceless supplier staging is explicit, no identifiable local creator or testimonial is present, and at least two independent supporting signals cover cross-frame hand corroboration and supplier-style staging.",
         "Without a direct strong signal, a composite path requires at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features.",
         "An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator."
       ],
@@ -150,12 +151,13 @@
         "Do not hit for an ordinary clean studio setup without an independent China-origin, presenter, or cross-border editing corroborator.",
         "The approved hard exemptions are replying to a user or fan comment and showing another creator briefly before self-verification or proof-style comparison/validation/debunking.",
         "Same-creator scene changes, a same identifiable local creator/testimonial, ordinary b-roll/normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak, face/hand-only, or composite signals.",
+        "Only the narrow corroborated faceless supplier-style hand path may override the coherent_product_demonstration contextual exemption. A single or uncorroborated hand remains clean.",
         "Origin packaging, MADE IN CHINA, and ordinary Chinese package text do not prove a Chinese local environment.",
         "is_aigc is not cross-border inventory evidence. Never use is_aigc=1 to support this label."
       ],
       "required_evidence": [
         "a frame_direct_signal_audit row for every sampled video frame, covering full-frame borders/background, face, visible hands/forearms, and sandwich or blurred-fill composition",
-        "a strict sandwich or real China-local hard-direct signal, the complete three-jump plus discontinuity plus two-feature composite path, or corroborated faceless supplier/studio evidence",
+        "a strict sandwich or real China-local hard-direct signal, the complete three-jump plus discontinuity plus two-feature composite path, or a faceless supplier-style path with the same corroborated hand cue in at least three sampled frames and two independent supporting signals",
         "explicit exemption audit",
         "frame-level explanation of why the footage is China-origin e-commerce material distributed to an EU target market"
       ]

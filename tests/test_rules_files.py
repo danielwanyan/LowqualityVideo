@@ -52,7 +52,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
 
         actual = {rule["issue_type"] for rule in data["rules"]}
 
-        self.assertEqual(data["version"], "2026-11-05-v7.0-600-human-gt-candidate")
+        self.assertEqual(data["version"], "2026-11-05-v7.1-600-human-gt-candidate")
         self.assertEqual(actual, EXPECTED_ISSUE_TYPES)
         self.assertEqual(set(data["primary_issue_types"]), EXPECTED_ISSUE_TYPES | {"none"})
         self.assertEqual(data["primary_issue_types"], EXPECTED_PRIORITY)
@@ -106,7 +106,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
     def test_text_rules_include_core_boundaries(self):
         text = TEXT_RULES.read_text(encoding="utf-8")
 
-        self.assertIn("LowqualityVideo Rules v7.0 600-human-GT candidate", text)
+        self.assertIn("LowqualityVideo Rules v7.1 600-human-GT candidate", text)
         self.assertIn("Allowed model evidence: frame_list, ASR, OCR, images, country", text)
         self.assertIn("Display-only fields: url, product_id, seller_id_str", text)
         self.assertNotIn("author_id", text)
@@ -128,7 +128,7 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         by_type = {rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower() for rule in data["rules"]}
         text = TEXT_RULES.read_text(encoding="utf-8").lower()
 
-        self.assertEqual(data["version"], "2026-11-05-v7.0-600-human-gt-candidate")
+        self.assertEqual(data["version"], "2026-11-05-v7.1-600-human-gt-candidate")
         self.assertIn("商品图", by_type["misleading_functionality_or_effect"])
         self.assertIn("must be supported by frame_list, asr, or ocr", by_type["misleading_functionality_or_effect"])
         self.assertIn("商品详情页", text)
@@ -165,6 +165,20 @@ class LowqualityVideoRulesTest(unittest.TestCase):
         self.assertIn("substantive screen/text", by_type["still_frame"])
         self.assertIn("live-motion", by_type["still_frame"])
         self.assertNotIn("static-image sequence, slideshow, or several frozen-image segments can also qualify", by_type["still_frame"])
+
+    def test_v71_narrow_faceless_hand_supplier_path_is_encoded(self):
+        data = self.load_rules()
+        by_type = {
+            rule["issue_type"]: json.dumps(rule, ensure_ascii=False).lower()
+            for rule in data["rules"]
+        }
+        text = TEXT_RULES.read_text(encoding="utf-8").lower()
+
+        for content in (by_type["suspected_pirated_or_reused_content"], text):
+            self.assertIn("at least three sampled frames", content)
+            self.assertIn("faceless supplier-style", content)
+            self.assertIn("two independent supporting signals", content)
+            self.assertIn("single or uncorroborated hand", content)
 
     def test_november_human_gt_marketing_and_still_frame_boundaries(self):
         data = self.load_rules()
