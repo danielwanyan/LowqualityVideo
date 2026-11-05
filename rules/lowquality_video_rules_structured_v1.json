@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-02-v6.9-170-human-gt",
+  "version": "2026-11-05-v7.0-600-human-gt-candidate",
   "project": "LowqualityVideo",
   "scope": "Review one e-commerce short video for video low-quality signals. Product images and country are auxiliary evidence only.",
   "decision_values": [
@@ -72,8 +72,8 @@
   },
   "optional_input_contract": {
     "is_aigc": "Optional integer. 0 means non-AIGC and 1 means AIGC. Missing is not rewritten as 0 or unknown.",
-    "scope": "is_aigc is used only by unrealistic_or_continuity_error. It is not evidence for suspected piracy/reuse or any other issue.",
-    "continuity_gate": "is_aigc=1 is required but not sufficient; concrete visual abnormality evidence is also required."
+    "scope": "is_aigc is an attention hint only for unrealistic_or_continuity_error. It is not a required gate and is not evidence for suspected piracy/reuse or any other issue.",
+    "continuity_gate": "Concrete frame-pair continuity evidence is required whether is_aigc is 0, 1, missing, or invalid."
   },
   "rules": [
     {
@@ -118,7 +118,9 @@
         "A concrete claim is not automatically misleading. It must be materially stronger than the bound product or contradicted by concrete product evidence, or the demonstrated effect must be physically impossible.",
         "Do not hit for vague metaphors, ordinary category effects, routine marketing language, or one-off ordinary speech error when there is no material consumer deception.",
         "If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong.",
-        "Do not restrict disease or health condition prevention and elimination review to named grooming phrases."
+        "Do not restrict disease or health condition prevention and elimination review to named grooming phrases.",
+        "Ordinary category effects, comfort/support, pain-relief sales language, routine beauty effects, and other plausible category claims are clean without independent falsity evidence.",
+        "OCR-only claims are clean when they are inconsistent with the video or suspected data contamination."
         ,"Ordinary sales language, plausible category benefits, and user/device-dependent outcomes are clean without a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim."
         ,"A 5000mAh power-bank claim about charging a phone twice is clean when no exact phone battery, charging conditions, or device-specific hard contradiction is established."
         ,"Common pillow comfort, posture, facial-appearance, and neck-tension benefit language is a plausible category benefit unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee."
@@ -126,7 +128,8 @@
       "required_evidence": [
         "specific frame, ASR, or OCR claim",
         "explanation of why the claim is materially misleading",
-        "at least one decisive basis: direct hard contradiction, absolute guaranteed outcome, or physically impossible claim"
+        "at least one reviewed decisive basis: objective contradiction or impossibility, or an inherently impossible or permanent guarantee",
+        "explicit OCR context-consistency and contamination audit"
       ]
     },
     {
@@ -134,7 +137,7 @@
       "issue_type": "suspected_pirated_or_reused_content",
       "label": "跨境货盘",
       "triggers": [
-        "The video shows China-origin e-commerce footage distributed to a non-China EU target market. Direct strong signals include a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.",
+        "The video shows China-origin e-commerce footage distributed to a non-China EU target market. Hard direct signals are limited to a real Chinese plate/domestic UI/local environment or a strict source clip with true top/bottom fill. East-Asian face/hand cues are supporting evidence only.",
         "Without a direct strong signal, a composite path requires at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features.",
         "An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator."
       ],
@@ -146,12 +149,13 @@
         "Ordinary b-roll, normal editing, an ordinary scene transition, or a coherent real product demonstration blocks weak or composite inference but must not override a verified direct strong signal.",
         "Do not hit for an ordinary clean studio setup without an independent China-origin, presenter, or cross-border editing corroborator.",
         "The approved hard exemptions are replying to a user or fan comment and showing another creator briefly before self-verification or proof-style comparison/validation/debunking.",
-        "Same-creator scene changes, ordinary b-roll/normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak or composite signals, but must not override a verified direct strong signal.",
+        "Same-creator scene changes, a same identifiable local creator/testimonial, ordinary b-roll/normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak, face/hand-only, or composite signals.",
+        "Origin packaging, MADE IN CHINA, and ordinary Chinese package text do not prove a Chinese local environment.",
         "is_aigc is not cross-border inventory evidence. Never use is_aigc=1 to support this label."
       ],
       "required_evidence": [
         "a frame_direct_signal_audit row for every sampled video frame, covering full-frame borders/background, face, visible hands/forearms, and sandwich or blurred-fill composition",
-        "a specific direct strong signal, the complete three-jump plus discontinuity plus two-feature composite path, or corroborated overly-clean studio evidence",
+        "a strict sandwich or real China-local hard-direct signal, the complete three-jump plus discontinuity plus two-feature composite path, or corroborated faceless supplier/studio evidence",
         "explicit exemption audit",
         "frame-level explanation of why the footage is China-origin e-commerce material distributed to an EU target market"
       ]
@@ -161,18 +165,21 @@
       "issue_type": "pure_marketing_pitch",
       "label": "仅营销叫卖",
       "triggers": [
-        "Nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure.",
+        "ASR/OCR contains evidenced commercial conversion pressure from price/promotion or repeated dominant purchase/stock pressure.",
         "The video contains almost no product function, material, size, use scenario, operation method, or realistic product information."
       ],
       "false_positive_boundaries": [
         "ASR/OCR is the authoritative evidence surface for pure_marketing_pitch.",
-        "Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.",
-        "Visual demonstration does not automatically block pure marketing; real product use, wearing, unboxing, operating, applying, or assembling blocks only when ASR/OCR communicates concrete product information.",
-        "A functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison in ASR/OCR blocks the hit.",
+        "One CTA, one sold-out/stock mention, one cart mention, or emotional praise is insufficient without repeated dominant commercial pressure.",
+        "Product name, package visibility, item count, flavor/color list, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.",
+        "Visual demonstration alone neither proves nor blocks pure marketing; concrete product information in ASR/OCR controls the boundary.",
+        "A concrete component, function, material or specification, capacity or dimensions, compatibility, ingredients or composition, use, scenario, product contents, or meaningful comparison in ASR/OCR blocks the hit.",
         "Information such as 40 pages, a counting activity, and a calm creative-leisure use case is substantive and blocks the hit."
       ],
       "required_evidence": [
-        "ASR or OCR evidence showing near-total marketing pitch"
+        "quoted commercial conversion pressure evidence",
+        "explicit price/promotion versus repeated purchase/stock path",
+        "explicit concrete product feature/use audit"
       ]
     },
     {
@@ -204,11 +211,12 @@
       ],
       "false_positive_boundaries": [
         "Do not hit merely because the opening has setup or a short unrelated segment.",
-        "Do not hit if a later segment provides real product demonstration or explanation.",
+        "Do not hit if a later segment provides a coherent real product demonstration or explanation and unrelated duration does not dominate.",
         "Do not hit when the product has substantive screen presence, including approximately one third of the sampled video, unless the remaining unrelated content clearly dominates the promotional message."
       ],
       "required_evidence": [
-        "video frame or ASR/OCR evidence of unrelated main content"
+        "video frame or ASR/OCR evidence of unrelated main content",
+        "explicit coherent relevant product segment and unrelated-duration dominance fields"
       ]
     },
     {
@@ -216,7 +224,7 @@
       "issue_type": "unrealistic_or_continuity_error",
       "label": "穿帮 / 不符现实",
       "triggers": [
-        "is_aigc=1 is required before this issue can be considered; is_aigc=0, missing, or invalid blocks this issue.",
+        "is_aigc is an attention hint only and never a required gate; concrete frame-pair continuity evidence controls the decision.",
         "Strong visual evidence shows physically impossible product behavior, object materialization or disappearance, impossible structure deformation, impossible body or hand contact, or an impossible product effect.",
         "Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.",
         "The issue affects consumer understanding of the product.",
@@ -224,7 +232,7 @@
         "A finger or hand appears to press, insert, fasten, or manipulate a screw, pin, connector, or mounting part in a physically impossible way, without the required tool or feasible contact."
       ],
       "false_positive_boundaries": [
-        "is_aigc=1 only enables review and never creates a hit by itself.",
+        "is_aigc=0, 1, missing, or invalid neither blocks nor creates a hit by itself.",
         "Do not hit for ordinary action jumps between sampled frames.",
         "Do not hit for missing intermediate actions alone.",
         "Do not hit for slight hand artifacts, lighting or angle changes, motion blur, or process-video cuts that do not affect product understanding.",
@@ -245,7 +253,8 @@
       "false_positive_boundaries": [
         "Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display without clear vulgar/adult framing.",
         "Do not hit a contextually reasonable isolated profanity that is not the promotional hook.",
-        "Do not hit ordinary intimate grooming or pubic-hair shaving without sexualized promotional framing."
+        "Do not hit ordinary intimate grooming or pubic-hair shaving without sexualized promotional framing.",
+        "Do not hit a random song title, incidental device text, or accurate body/balls trimmer wording without an active vulgar promotion hook."
       ],
       "required_evidence": [
         "video frame, ASR, or OCR evidence of vulgar or adult framing"
@@ -278,7 +287,8 @@
         "The video uses clearly pirated copyrighted video content as the main promotional body."
       ],
       "false_positive_boundaries": [
-        "Do not hit merely for reference clips, reply/comment context, or same-creator multi-scene editing when product demonstration remains original."
+        "Do not hit merely for reference clips, reply/comment context, or same-creator multi-scene editing when product demonstration remains original.",
+        "Do not hit third-party content used only as a product-dependent illustrative clip in a projector, TV, or game-device demonstration."
       ],
       "required_evidence": [
         "clear pirated content evidence"
@@ -312,10 +322,12 @@
       "false_positive_boundaries": [
         "Do not hit a generic mention such as our website, visit the website, or contact us when no actionable locator is visible or spoken.",
         "Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.",
-        "Do not hit private-message requests by themselves."
+        "Do not hit private-message requests by themselves.",
+        "Do not hit an incidental device-screen locator, background domain, app UI, or OCR contamination that is not transactionally invoked."
       ],
       "required_evidence": [
-        "ASR, OCR, or frame evidence naming the explicit external destination, external contact path, or external payment path"
+        "ASR, OCR, or frame evidence naming the explicit external destination, external contact path, or external payment path",
+        "evidence that the locator is transactionally invoked"
       ]
     },
     {
@@ -323,18 +335,19 @@
       "issue_type": "still_frame",
       "label": "静止帧",
       "triggers": [
-        "The dominant subject, poster, PPT/card layout, composition, or sellable content remains static across the sampled video frames.",
-        "Text visibility, filters, flashing, blur, minor overlay motion, small crop, reflection, or border changes may coexist with a still-frame hit when the dominant subject and layout stay static."
+        "The same sellable content remains static across the sampled video frames without live-capture motion, substantive screen/text change, or product variant/state change.",
+        "A discrete static montage of the same sellable content may qualify when no continuous action or new substantive information is shown."
       ],
       "false_positive_boundaries": [
-        "Block when frames show meaningful subject action, product-state or use-step change, scene change, camera/composition change, meaningful angle shift or lighting shift, or continuous motion that changes substantive visual content.",
+        "Block when frames show real hand action, continuous camera/reflection/light motion, substantive screen/text change, product variant/state change, scene change, or other motion that changes sellable content.",
         "Do not hit merely because ASR/OCR is weak or absent when frames show clear product use or changing visual evidence.",
         "An unknown sampling interval does not clear an otherwise static sampled presentation; judge the available video-frame evidence.",
         "Distinguish minor overlay motion from meaningful subject or scene motion."
       ],
       "required_evidence": [
         "concrete all-sampled-frame comparison evidence describing the static dominant subject/layout and any minor overlay motion",
-        "a non-empty frame change summary covering all sampled video frames and excluding bound-product images"
+        "a non-empty frame change summary covering all sampled video frames and excluding bound-product images",
+        "explicit live-motion, substantive screen/text, product variant/state, same-sellable-content, and discrete-static-montage fields"
       ]
     }
   ],

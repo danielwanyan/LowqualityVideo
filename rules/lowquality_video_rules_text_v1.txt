@@ -1,4 +1,4 @@
-LowqualityVideo Rules v6.9 170-human-GT
+LowqualityVideo Rules v7.0 600-human-GT candidate
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -44,8 +44,8 @@ Return every supported issue in detected_issue_types in this order. primary_issu
 
 Optional AIGC input contract
 is_aigc is optional and accepts only numeric 0 or 1. Missing is not a third value and must not be rewritten as 0 or unknown.
-is_aigc=1 is required but not sufficient for unrealistic_or_continuity_error; concrete visual abnormality evidence is also required.
-is_aigc=0, missing, or invalid blocks unrealistic_or_continuity_error.
+is_aigc is an attention hint only, never a required gate for unrealistic_or_continuity_error.
+is_aigc=0, 1, missing, or invalid neither blocks nor creates a concrete continuity issue.
 Never use is_aigc as evidence for suspected_pirated_or_reused_content, pirated_content, MFE, or any other issue.
 
 Rule V1: video_product_mismatch / 挂车商品与讲解商品不一致
@@ -61,7 +61,8 @@ Do not hit from product images alone. Do not use product detail page claims or p
 Do not hit for ordinary advertising tone, subjective praise, metaphor, fashion or fit claims without concrete false promise, expected cleaning/shaving/styling/cooking outcomes, common category claims, or minor numerical ambiguity that can be ordinary speech error.
 A concrete claim is not automatically misleading. It must be materially stronger than the bound product, contradicted by concrete product evidence, or shown through a physically impossible demonstration.
 If the video claim is consistent with the bound product and is not materially more exaggerated, choose clean even when the wording is strong.
-A claim-type enum alone never lowers the MFE threshold. Ordinary sales language, plausible category benefit, and user/device-dependent outcomes are clean unless there is a direct hard contradiction, absolute guaranteed outcome, or physically impossible claim.
+A claim-type enum alone never lowers the MFE threshold. Require objective contradiction/impossibility or an inherently impossible/permanent guarantee. Ordinary sales language, plausible category benefit, ordinary health/comfort effects, and user/device-dependent outcomes are clean without independent falsity evidence.
+OCR-only claims are clean when they are inconsistent with the video or suspected data contamination.
 A 5000mAh power-bank claim about charging a phone twice is clean when the exact phone battery, charging conditions, and a device-specific hard contradiction are not established.
 Common pillow comfort, posture, facial-appearance, and neck-tension benefit language is clean unless it becomes an absolute cure, permanent anatomical-change claim, or universal guarantee.
 Generalize the medical boundary to explicit prevention or elimination of any disease or health condition. Claims that a product prevents bladder inflammation or brain disease, or guarantees that bacteria do not form, are medical or safety outcome claims; do not restrict this rule to named grooming conditions.
@@ -69,17 +70,17 @@ Generalize the medical boundary to explicit prevention or elimination of any dis
 Rule V3: suspected_pirated_or_reused_content / 跨境货盘
 This internal issue id is retained only for workflow compatibility. The outward business label and current meaning are 跨境货盘: China-origin e-commerce footage distributed to a non-China EU target market.
 Before the final judgment, produce one frame_direct_signal_audit row for every sampled video frame and inspect the complete frame, borders, background, faces, visible hands/forearms, and sandwich or blurred-fill composition.
-Direct strong signals are a Chinese license plate or domestic UI/environment, a clear East-Asian face cue, a hand-only East-Asian cue such as visibly absent hand or forearm hair under the reviewed policy, or a sandwich layout / blurred top-bottom fill used for cross-border repackaging.
+Hard direct signals are limited to a real Chinese license plate/domestic UI/local environment or a strict source clip with true top/bottom fill. East-Asian face/hand cues are supporting evidence only and cannot independently override a declared clean result.
 Without a direct strong signal, require at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features. Do not hit from cut count alone.
 An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator. Ordinary clean EU studio footage alone is clean.
 Hard exemptions remain: replying to a user or fan comment; showing another creator briefly and then self-verifying; and proof-style comparison, validation, or debunking.
-The same creator changing scenes, ordinary b-roll or normal transitions, and a coherent real product demonstration remain contextual editing exemptions for weak or composite inference, but must not override a verified direct strong signal.
+The same identifiable local creator/testimonial, ordinary b-roll or normal transitions, and a coherent real product demonstration block weak, face/hand-only, or composite inference. Origin packaging, MADE IN CHINA, and ordinary Chinese package text do not prove a Chinese local environment.
 is_aigc is not cross-border inventory evidence and must never support this label.
 
 Rule V4: pure_marketing_pitch / 仅营销叫卖
-Hit only when nearly all ASR/OCR is price, urgency, stock, discount, order guidance, or sales pressure, with almost no product function, material, size, use scenario, operation method, or realistic product information.
+Hit only when ASR/OCR has evidenced commercial conversion pressure from price/promotion or repeated dominant purchase/stock pressure, with almost no concrete product information. A single CTA, sold-out/stock mention, cart mention, or emotional praise is insufficient.
 ASR/OCR is the authoritative evidence surface for this issue. Product name, package visibility, item count, price, prize mechanics, and generic display are sales context and do not by themselves block this hit.
-Visual demonstration does not automatically block pure marketing. Real product use, wearing, unboxing, operating, applying, assembling, or other visual use blocks only when ASR/OCR itself communicates a functional explanation, material or specification, capacity or dimensions, compatibility, ingredients or composition, usage method, or a meaningful comparison.
+Visual demonstration alone neither proves nor blocks pure marketing. Concrete components, function, material/specification, capacity/dimensions, compatibility, ingredients, use, scenario, product contents, or meaningful comparison in ASR/OCR block.
 Concrete information such as 40 pages, a counting activity, and a calm creative-leisure use case is substantive and blocks the hit. Price, discount, urgency, stock, coupon, or CTA language without such ASR/OCR product information remains pure marketing even when the product is visible or briefly demonstrated.
 
 Rule V5: no_physical_product_display / 无实物展示（围绕商品讲解）
@@ -93,12 +94,11 @@ If unrelated content dominates, use irrelevant_product_promotion instead of also
 Rule V6: irrelevant_product_promotion / 内容与商品无关推广
 Hit when most of the video body is unrelated to the bound product, and the product appears only briefly, at the end, or not substantively.
 Do not hit merely because the opening has setup or a short unrelated segment.
-Do not hit if a later segment provides real product demonstration or explanation.
-Do not hit when the product has substantive screen presence, including approximately one third of the sampled video, unless the remaining unrelated content clearly dominates the promotional message.
+Judge the complete narrative rather than simple sampled-frame counts. Do not hit if a later segment provides a coherent relevant product demonstration or explanation and unrelated duration does not dominate.
 
 Rule V7: unrealistic_or_continuity_error / 穿帮 / 不符现实
-is_aigc=1 is required before this issue can be considered. is_aigc=0, missing, or invalid blocks the issue.
-is_aigc=1 only enables review and never creates a hit by itself.
+is_aigc is an attention hint only and never a required gate.
+Require concrete frame-pair identity, shape, color, component, object-contact, or physical-continuity evidence regardless of is_aigc value.
 Hit only when strong visual evidence affects consumer understanding of the product and cannot reasonably be explained by sampling interval, normal editing, camera angle, or missing intermediate action. Strong examples include directly taking an item from a sealed or unopened package without opening it, a connector, plug, hook, screw, support bar, or mounting structure changing impossibly, or a hand/object contact that cannot physically perform the shown action.
 A finger or hand pressing, inserting, fastening, or manipulating a screw, pin, connector, or mounting part without a feasible physical action or required tool is a positive example when it cannot happen as shown.
 Do not hit for ordinary action jumps between sampled frames, missing intermediate actions alone, slight hand artifacts, lighting or angle changes, motion blur, or process-video cuts that do not affect product understanding.
@@ -109,7 +109,7 @@ Hit when the video uses a clear sexualized hook, vulgar, adult, dating, or sexua
 Crude genital language used as a sales hook and a visible middle-finger product punchline qualify even when MFE or another issue is also present.
 Do not hit ordinary try-on, gym, swimwear, shapewear, or body-fit display without clear vulgar/adult framing.
 Do not hit a contextually reasonable isolated profanity that is not the promotional hook.
-Do not hit ordinary intimate grooming or pubic-hair shaving without sexualized promotional framing.
+Do not hit ordinary intimate grooming or pubic-hair shaving without sexualized promotional framing. A random song title, incidental device text, or accurate body/balls trimmer wording is clean without an active vulgar promotion hook.
 
 Rule V9: disgusting_or_terrifying_visual / 恶心恐怖
 Hit only when a strongly disturbing visual subject fills, dominates, or persists across the presentation, such as severe infestation, injury, dense-phobia-like imagery, bodily or horror-style content.
@@ -120,7 +120,7 @@ Do not hit humor, a calendar, packaging, printed imagery, novelty content, or pr
 
 Rule V10: pirated_content / 盗版内容
 Hit when the video uses clearly pirated copyrighted video content as the main promotional body.
-Do not hit merely for reference clips, reply/comment context, or same-creator multi-scene editing when product demonstration remains original.
+Do not hit merely for reference clips, reply/comment context, or same-creator multi-scene editing when product demonstration remains original. Third-party content used only as a product-dependent illustrative clip in a projector, TV, or game-device demonstration is clean.
 
 Rule V11: description_not_detailed / 内容介绍不详细（低质）
 Hit when the video fails to provide meaningful product information for categories where function or usage explanation is required, such as supplements, health products, electronics, tools, or appliances.
@@ -132,12 +132,11 @@ Rule V12: out_of_app_transaction / 站外引流交易
 Hit only when the video provides an explicit external destination with an actionable external locator: a concrete domain or URL, external account, phone number, external-platform QR code, or external payment instruction.
 Do not hit a generic mention such as our website, visit the website, or contact us when no actionable locator is visible or spoken.
 Do not hit TikTok Shop, orange cart, yellow cart, or link-below language that points to the in-app product listing.
-Do not hit private-message requests by themselves.
+Do not hit private-message requests by themselves. An incidental device-screen locator, background domain, app UI, or OCR contamination is clean unless the locator is transactionally invoked.
 
 Rule V13: still_frame / 静止帧
-Hit when the dominant subject, poster, PPT/card layout, composition, or sellable content remains static across the sampled video frames. Require a non-empty frame change summary covering all sampled frames and exclude bound-product images from the comparison.
-Text visibility, filters, flashing, blur, minor overlay motion, small crop, reflection, or border changes do not block the issue when the dominant subject and layout stay static.
-Block only meaningful subject action, product-state or use-step change, scene change, camera/composition change, meaningful angle shift or lighting shift, or other continuous motion that changes the substantive visual content.
+Hit when the same sellable content remains static across sampled video frames without live-capture motion, substantive screen/text change, or product variant/state change. A discrete static montage of the same sellable content may qualify when no continuous action or new substantive information appears.
+Block real hand action, continuous camera/reflection/light motion, substantive screen/text changes, product variant/state changes, or scene changes.
 An unknown sampling interval does not clear an otherwise static sampled presentation. Judge only the available video-frame evidence and explain whether the observed change is minor overlay motion or meaningful subject/scene motion.
 
 Output requirements
