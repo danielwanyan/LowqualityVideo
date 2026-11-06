@@ -1,4 +1,4 @@
-LowqualityVideo Rules v7.1 600-human-GT candidate
+LowqualityVideo Rules v7.2 600-human-GT candidate
 
 This workflow is video-first. The final model judges only video low-quality signals.
 
@@ -72,6 +72,7 @@ This internal issue id is retained only for workflow compatibility. The outward 
 Before the final judgment, produce one frame_direct_signal_audit row for every sampled video frame and inspect the complete frame, borders, background, faces, visible hands/forearms, and sandwich or blurred-fill composition.
 Hard direct signals are limited to a real Chinese license plate/domestic UI/local environment or a strict source clip with true top/bottom fill. East-Asian face/hand cues are supporting evidence only and cannot independently override a declared clean result.
 A narrow faceless supplier-style hand path may pass only when the same hand/forearm cue is corroborated in at least three sampled frames, faceless supplier staging is explicit, there is no identifiable local creator/testimonial, and there are at least two independent supporting signals covering cross-frame hand corroboration and supplier-style staging. Only this narrow path may override the coherent_product_demonstration contextual exemption. A single or uncorroborated hand remains clean.
+A faceless supplier path may also pass when concrete foreign-market shipping or logistics evidence visibly conflicts with the target country, the evidence is quoted, and two independent supporting signals establish both the market mismatch and supplier staging. An ambiguous or incidental background label remains clean.
 Without a direct strong signal, require at least three visual-style jumps, expression or narrative discontinuity, and at least two presenter or source features. Do not hit from cut count alone.
 An overly clean commercial studio setup is a priority supporting signal but requires at least one independent China-origin, presenter, or cross-border editing corroborator. Ordinary clean EU studio footage alone is clean.
 Hard exemptions remain: replying to a user or fan comment; showing another creator briefly and then self-verifying; and proof-style comparison, validation, or debunking.
